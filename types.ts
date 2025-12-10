@@ -7,12 +7,20 @@ export interface UserPreferences {
   industry: string;
   workMode: 'Remote' | 'Hybrid' | 'On-site';
   employmentType: 'Full-time' | 'Contract' | 'Freelance';
-  keySkills: string; // Comma separated string for simplicity in form, processed later
+  keySkills: string; 
   resume?: {
     base64: string;
     mimeType: string;
     fileName: string;
   };
+  enableIntelligence: boolean; // New Premium Flag
+}
+
+export interface MarketIntelligence {
+  supplyDemandRating: string;
+  competitivenessScore: number; // 1-10
+  salaryGrowthForecast: string;
+  careerTrajectory: string;
 }
 
 export interface Job {
@@ -28,6 +36,7 @@ export interface Job {
   description: string;
   requirements: string[];
   url: string;
+  marketIntelligence?: MarketIntelligence; // Optional based on mode
 }
 
 export enum AgentStatus {

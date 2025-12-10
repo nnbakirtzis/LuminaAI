@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { UserPreferences } from '../types';
-import { Search, MapPin, Briefcase, ChevronDown, Check, Building2, Wallet, Upload, FileText, X } from 'lucide-react';
+import { Search, MapPin, Briefcase, ChevronDown, Check, Building2, Wallet, Upload, FileText, X, Sparkles, TrendingUp } from 'lucide-react';
 
 interface PreferenceFormProps {
   onSubmit: (prefs: UserPreferences) => void;
@@ -22,14 +22,14 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
     workMode: 'Remote',
     employmentType: 'Full-time',
     keySkills: '',
-    resume: undefined
+    resume: undefined,
+    enableIntelligence: false
   });
 
   const [isExpDropdownOpen, setIsExpDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Close dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -50,7 +50,6 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
     setPrefs(prev => ({ ...prev, [name]: value }));
   };
 
-  // Salary Slider Handler
   const handleSalaryChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'min' | 'max') => {
     const val = parseInt(e.target.value);
     setPrefs(prev => {
@@ -64,7 +63,6 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
     });
   };
 
-  // File Upload Handler
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -101,10 +99,8 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-5xl mx-auto bg-neutral-900/60 backdrop-blur-xl border border-neutral-800 p-8 md:p-10 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] animate-slide-up relative overflow-hidden">
-      {/* Decorative Top Line */}
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold-500/50 to-transparent"></div>
       
-      {/* CSS to ensure dual sliders work correctly without blocking each other */}
       <style>{`
         .thumb-input::-webkit-slider-thumb {
           pointer-events: auto;
@@ -128,7 +124,6 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
         
         {/* Left Column */}
         <div className="space-y-8">
-          {/* Job Title */}
           <div className="space-y-3">
             <label className="text-xs font-bold text-neutral-500 uppercase tracking-widest flex items-center gap-2">
               <Briefcase size={12} className="text-gold-500" /> Desired Role
@@ -144,7 +139,6 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
             />
           </div>
 
-           {/* Location */}
            <div className="space-y-3">
             <label className="text-xs font-bold text-neutral-500 uppercase tracking-widest flex items-center gap-2">
               <MapPin size={12} className="text-gold-500" /> Location
@@ -160,10 +154,9 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
             />
           </div>
 
-          {/* Key Skills */}
           <div className="space-y-3">
             <label className="text-xs font-bold text-neutral-500 uppercase tracking-widest flex items-center gap-2">
-               <Building2 size={12} className="text-gold-500" /> Key Skills / Keywords (Optional)
+               <Building2 size={12} className="text-gold-500" /> Key Skills / Keywords
             </label>
             <input
               type="text"
@@ -175,7 +168,6 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
             />
           </div>
 
-          {/* Resume Upload */}
           <div className="space-y-3">
              <label className="text-xs font-bold text-neutral-500 uppercase tracking-widest flex items-center gap-2">
                <Upload size={12} className="text-gold-500" /> Resume / CV (Optional)
@@ -210,7 +202,7 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
                   <button 
                     type="button"
                     onClick={(e) => {
-                      e.stopPropagation(); // Prevent opening file dialog
+                      e.stopPropagation(); 
                       removeFile();
                     }}
                     className="p-2 hover:bg-neutral-800 rounded-full text-neutral-500 hover:text-red-400 z-20 transition-colors"
@@ -231,7 +223,6 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
         {/* Right Column */}
         <div className="space-y-8">
           
-          {/* Custom Experience Dropdown */}
           <div className="space-y-3 relative" ref={dropdownRef}>
             <label className="text-xs font-bold text-neutral-500 uppercase tracking-widest">Experience Level</label>
             <div 
@@ -245,7 +236,6 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
               <ChevronDown size={20} className={`text-neutral-500 transition-transform ${isExpDropdownOpen ? 'rotate-180' : ''}`} />
             </div>
 
-            {/* Dropdown Menu */}
             <div className={`
               absolute z-20 w-full mt-2 bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl overflow-hidden origin-top transition-all duration-200
               ${isExpDropdownOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'}
@@ -268,7 +258,6 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
             </div>
           </div>
 
-          {/* Interactive Salary Slider */}
           <div className="space-y-5 pt-2">
             <div className="flex justify-between items-end">
                <label className="text-xs font-bold text-neutral-500 uppercase tracking-widest flex items-center gap-2">
@@ -280,10 +269,8 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
             </div>
             
             <div className="relative h-6 w-full mt-2 flex items-center">
-              {/* Slider Track Background */}
               <div className="absolute top-1/2 left-0 w-full h-1.5 bg-neutral-800 rounded-full -translate-y-1/2"></div>
               
-              {/* Active Track */}
               <div 
                 className="absolute top-1/2 h-1.5 bg-gold-600 rounded-full opacity-80 -translate-y-1/2"
                 style={{
@@ -292,7 +279,6 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
                 }}
               ></div>
 
-              {/* Range Inputs - Overlapping but with pointer-events fix */}
               <input 
                 type="range" min="0" max="300" step="10"
                 value={prefs.salaryMin}
@@ -306,7 +292,6 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
                 className="absolute inset-0 w-full h-full opacity-0 z-20 thumb-input pointer-events-none appearance-none"
               />
 
-              {/* Custom Thumbs (Visual Only) */}
               <div 
                 className="absolute w-5 h-5 bg-neutral-900 border-2 border-gold-500 rounded-full shadow pointer-events-none transition-transform hover:scale-110 -translate-x-1/2"
                 style={{ left: `${(prefs.salaryMin / 300) * 100}%` }}
@@ -321,13 +306,51 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
               <span>$300k+</span>
             </div>
           </div>
+          
+           {/* PREMIUM MODE TOGGLE */}
+           <div className="pt-2">
+            <div 
+              onClick={() => setPrefs(prev => ({...prev, enableIntelligence: !prev.enableIntelligence}))}
+              className={`
+                group cursor-pointer border rounded-xl p-4 flex items-center justify-between transition-all duration-300
+                ${prefs.enableIntelligence 
+                  ? 'bg-neutral-900 border-gold-500/50 shadow-[0_0_15px_rgba(201,156,90,0.1)]' 
+                  : 'bg-neutral-950/30 border-neutral-800 hover:bg-neutral-900 hover:border-neutral-700'}
+              `}
+            >
+              <div className="flex items-center gap-3">
+                <div className={`
+                  w-10 h-10 rounded-lg flex items-center justify-center transition-colors
+                  ${prefs.enableIntelligence ? 'bg-gold-500 text-obsidian-900' : 'bg-neutral-800 text-neutral-500'}
+                `}>
+                  <TrendingUp size={20} />
+                </div>
+                <div>
+                  <h4 className={`text-sm font-bold ${prefs.enableIntelligence ? 'text-gold-400' : 'text-neutral-300'}`}>
+                    Market Intelligence Engine
+                  </h4>
+                  <p className="text-[10px] text-neutral-500 uppercase tracking-wide">
+                    {prefs.enableIntelligence ? 'Premium Enabled' : 'Enable Premium Forecasts'}
+                  </p>
+                </div>
+              </div>
+              
+              <div className={`
+                w-12 h-6 rounded-full p-1 transition-colors duration-300 relative
+                ${prefs.enableIntelligence ? 'bg-gold-600' : 'bg-neutral-700'}
+              `}>
+                <div className={`
+                  w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-300
+                  ${prefs.enableIntelligence ? 'translate-x-6' : 'translate-x-0'}
+                `}></div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
-      {/* Advanced Filters Row */}
       <div className="pt-8 border-t border-neutral-800 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-        
-        {/* Work Mode - Segmented Control */}
         <div className="space-y-2">
           <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2 block">Work Mode</label>
           <div className="flex bg-neutral-950 p-1 rounded-lg border border-neutral-800 w-fit">
@@ -349,7 +372,6 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
           </div>
         </div>
 
-        {/* Employment Type - Pills */}
         <div className="space-y-2">
           <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2 block">Type</label>
           <div className="flex flex-wrap gap-2">
@@ -372,7 +394,6 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
         </div>
       </div>
 
-      {/* Action Bar */}
       <div className="mt-10 flex justify-end">
         <button
           type="submit"
@@ -382,7 +403,6 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
             disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gold-500 shadow-lg hover:shadow-gold-500/20 active:scale-95 w-full md:w-auto
           `}
         >
-          {/* Shine effect */}
           <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
           
           {isLoading ? (
@@ -391,7 +411,8 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
             </span>
           ) : (
             <span className="flex items-center gap-2 relative z-10">
-              Find Matching Jobs <Search size={20} className="group-hover:translate-x-1 transition-transform" />
+              {prefs.enableIntelligence ? 'Find Jobs + Forecast' : 'Find Matching Jobs'} 
+              <Search size={20} className="group-hover:translate-x-1 transition-transform" />
             </span>
           )}
         </button>
