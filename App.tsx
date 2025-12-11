@@ -5,7 +5,7 @@ import PreferenceForm from './components/PreferenceForm';
 import JobCard from './components/JobCard';
 import AgentTerminal from './components/AgentTerminal';
 import DebugSidebar from './components/DebugSidebar';
-import { Sparkles, Bot, Bug } from 'lucide-react';
+import { Bot, Bug, Sparkles } from 'lucide-react';
 
 const App: React.FC = () => {
   const [status, setStatus] = useState<AgentStatus>(AgentStatus.IDLE);
@@ -48,27 +48,27 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-obsidian-900 flex flex-col relative">
+    <div className="min-h-screen bg-gray-50 flex flex-col relative font-sans">
       <DebugSidebar isOpen={isDebugOpen} onClose={() => setIsDebugOpen(false)} logs={logs} />
       
-      {/* Navbar */}
-      <nav className="border-b border-neutral-800 bg-obsidian-900/80 backdrop-blur-md sticky top-0 z-50">
+      {/* Navbar - Navy Blue for Trust */}
+      <nav className="bg-navy-900 text-white sticky top-0 z-50 shadow-md">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-             <div className="w-8 h-8 bg-gradient-to-tr from-gold-600 to-gold-300 rounded-lg flex items-center justify-center text-obsidian-900">
+             <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center text-white backdrop-blur-sm border border-white/10">
                <Bot size={20} />
              </div>
-             <span className="font-serif text-xl font-semibold tracking-tight text-neutral-100">
-               Lumina<span className="text-gold-500">.AI</span>
+             <span className="font-display text-xl font-bold tracking-tight text-white">
+               Lumina<span className="text-teal-400">.AI</span>
              </span>
           </div>
           <div className="flex items-center gap-4">
-             <div className="text-xs text-neutral-500 font-mono hidden md:block">
-              POWERED BY GOOGLE GEMINI 2.5 FLASH
+             <div className="text-xs text-navy-200 font-medium hidden md:block uppercase tracking-wider">
+              Powered by Gemini
             </div>
             <button 
               onClick={() => setIsDebugOpen(true)}
-              className="p-2 text-neutral-500 hover:text-gold-500 transition-colors rounded-full hover:bg-neutral-800/50"
+              className="p-2 text-navy-200 hover:text-white transition-colors rounded-full hover:bg-white/10"
               title="Open Debug Logs"
             >
               <Bug size={18} />
@@ -83,15 +83,17 @@ const App: React.FC = () => {
         {/* Header Section */}
         {status === AgentStatus.IDLE && (
           <div className="text-center mb-16 animate-fade-in">
-            <h1 className="text-5xl md:text-6xl font-serif text-white mb-6 leading-tight">
+            <div className="inline-block px-3 py-1 bg-navy-50 border border-navy-100 rounded-full text-navy-800 text-[10px] font-bold uppercase tracking-widest mb-4">
+              Next-Gen Career Intelligence
+            </div>
+            <h1 className="text-5xl md:text-6xl font-display font-extrabold text-navy-900 mb-6 leading-[1.1] tracking-tight">
               Discover your next <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-300 to-gold-600">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-navy-600 to-teal-500">
                 career masterpiece
               </span>
             </h1>
-            <p className="text-lg text-neutral-400 max-w-2xl mx-auto font-light leading-relaxed">
-              Deploy our multi-agent AI system to scrape, analyze, and rank the premium job market 
-              according to your unique professional DNA.
+            <p className="text-lg text-slate-500 max-w-2xl mx-auto font-normal leading-relaxed">
+              Deploy our multi-agent AI system to analyze the market and find premium opportunities customized to your professional DNA.
             </p>
           </div>
         )}
@@ -107,7 +109,13 @@ const App: React.FC = () => {
         {/* Processing State: Terminal */}
         {(status === AgentStatus.PLANNING || status === AgentStatus.SCRAPING || status === AgentStatus.ANALYZING) && (
           <div className="min-h-[60vh] flex flex-col items-center justify-center">
-             <h2 className="text-2xl font-serif text-neutral-200 mb-4 animate-pulse">Agents Deployed</h2>
+             <div className="flex items-center gap-3 mb-6">
+                <div className="w-3 h-3 bg-teal-500 rounded-full animate-bounce"></div>
+                <div className="w-3 h-3 bg-navy-500 rounded-full animate-bounce delay-75"></div>
+                <div className="w-3 h-3 bg-gold-500 rounded-full animate-bounce delay-150"></div>
+             </div>
+             <h2 className="text-2xl font-display font-bold text-navy-900 mb-2">Agents Deployed</h2>
+             <p className="text-slate-500 mb-8">Analyzing market supply, demand, and compensation trends...</p>
              <AgentTerminal logs={logs} status={status} />
           </div>
         )}
@@ -115,14 +123,14 @@ const App: React.FC = () => {
         {/* Results */}
         {status === AgentStatus.COMPLETED && (
            <div className="animate-slide-up space-y-8">
-              <div className="flex items-center justify-between border-b border-neutral-800 pb-6">
+              <div className="flex items-center justify-between border-b border-gray-200 pb-6">
                 <div>
-                   <h2 className="text-3xl font-serif text-white mb-2">Curated Opportunities</h2>
-                   <p className="text-neutral-500 text-sm">Sorted by AI Match Score™</p>
+                   <h2 className="text-3xl font-display font-bold text-navy-900 mb-2">Curated Opportunities</h2>
+                   <p className="text-slate-500 text-sm">Sorted by AI Match Score™</p>
                 </div>
                 <button 
                   onClick={() => setStatus(AgentStatus.IDLE)}
-                  className="px-6 py-2 border border-neutral-700 rounded-lg text-neutral-400 hover:text-white hover:border-gold-500 transition-all text-sm"
+                  className="px-6 py-2 border border-slate-300 rounded-lg text-slate-600 hover:text-navy-900 hover:border-navy-900 transition-all text-sm font-medium"
                 >
                   New Search
                 </button>
@@ -136,10 +144,9 @@ const App: React.FC = () => {
               
               {/* Disclaimer */}
               <div className="mt-12 text-center">
-                <p className="text-neutral-600 text-xs flex items-center justify-center gap-2">
-                   <Sparkles size={12} className="text-gold-600" />
-                   Listings are generated by Gemini AI based on real-time market knowledge patterns. 
-                   Links may be simulated for demonstration.
+                <p className="text-slate-400 text-xs flex items-center justify-center gap-2">
+                   <Sparkles size={12} className="text-teal-500" />
+                   Listings generated by Gemini AI. Links simulated for demo.
                 </p>
               </div>
            </div>
