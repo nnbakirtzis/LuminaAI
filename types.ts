@@ -1,3 +1,4 @@
+
 export interface UserPreferences {
   jobTitle: string;
   location: string;
@@ -14,6 +15,13 @@ export interface UserPreferences {
     fileName: string;
   };
   enableIntelligence: boolean; // New Premium Flag
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
 }
 
 export interface MarketIntelligence {
