@@ -292,21 +292,21 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
             </div>
           </div>
           
-           {/* PREMIUM MODE TOGGLE - Updated for Light Theme Luxury */}
+           {/* PREMIUM MODE TOGGLE - Updated for Light Theme Luxury (Teal) */}
            <div className="pt-2">
             <div 
               onClick={() => setPrefs(prev => ({...prev, enableIntelligence: !prev.enableIntelligence}))}
               className={`
                 group cursor-pointer border rounded-xl p-4 flex items-center justify-between transition-all duration-300
                 ${prefs.enableIntelligence 
-                  ? 'bg-navy-900 border-navy-900 shadow-lg ring-2 ring-gold-400/30' 
+                  ? 'bg-navy-900 border-navy-900 shadow-lg ring-2 ring-teal-400/30' 
                   : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-md'}
               `}
             >
               <div className="flex items-center gap-3">
                 <div className={`
                   w-10 h-10 rounded-lg flex items-center justify-center transition-colors
-                  ${prefs.enableIntelligence ? 'bg-gold-500 text-navy-900' : 'bg-gray-100 text-gray-400'}
+                  ${prefs.enableIntelligence ? 'bg-teal-500 text-white' : 'bg-gray-100 text-gray-400'}
                 `}>
                   <TrendingUp size={20} />
                 </div>
@@ -322,7 +322,7 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
               
               <div className={`
                 w-12 h-6 rounded-full p-1 transition-colors duration-300 relative
-                ${prefs.enableIntelligence ? 'bg-gold-500' : 'bg-gray-200'}
+                ${prefs.enableIntelligence ? 'bg-teal-500' : 'bg-gray-200'}
               `}>
                 <div className={`
                   w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-300
