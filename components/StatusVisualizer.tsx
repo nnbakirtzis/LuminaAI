@@ -50,7 +50,11 @@ const StatusVisualizer: React.FC<StatusVisualizerProps> = ({ logs, isPremium }) 
                     w-10 h-10 rounded-full flex items-center justify-center shrink-0 border-2 transition-all duration-300
                     ${state.scanningDone ? 'bg-teal-500 border-teal-500 text-white' : 'bg-white border-navy-900 text-navy-900'}
                 `}>
-                   {state.scanningDone ? <CheckCircle2 size={20} /> : <Globe size={20} className="animate-spin-slow" />}
+                   {state.scanningDone ? (
+                     <CheckCircle2 size={20} />
+                   ) : (
+                     <Globe size={20} className={state.scanningStarted ? "animate-spin text-teal-600" : ""} />
+                   )}
                 </div>
                 <div>
                    <h3 className="font-bold text-navy-900 text-sm">Global Opportunity Scan</h3>

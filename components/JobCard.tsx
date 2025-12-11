@@ -13,7 +13,7 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
       {/* Match Score Badge - Teal for Success */}
       <div className="absolute top-6 right-6 z-10">
         <div className="relative flex items-center justify-center w-14 h-14 bg-white rounded-full shadow-lg border border-slate-100">
-          <svg className="absolute w-full h-full transform -rotate-90">
+          <svg className="absolute w-full h-full transform -rotate-90" viewBox="0 0 56 56">
             <circle
               cx="28"
               cy="28"
