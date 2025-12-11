@@ -1,165 +1,280 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { Job, UserPreferences } from "../types";
+import { Job, UserPreferences, MarketIntelligence } from "../types";
 
 // Initialize the Gemini client
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-// In-memory cache to store results of previous queries
-const queryCache = new Map<string, Job[]>();
+const model = "gemini-2.5-flash";
 
-/**
- * Generates a unique cache key based on user preferences.
- */
-const generateCacheKey = (prefs: UserPreferences): string => {
-  const { resume, ...rest } = prefs;
-  const resumeSignature = resume 
-    ? `${resume.fileName}_${resume.base64.length}_${resume.mimeType}`
-    : 'no_resume';
-  
-  const stablePrefs = JSON.stringify(rest, Object.keys(rest).sort());
-  return `${stablePrefs}::${resumeSignature}`;
-};
+// ------------------------------------------------------------------
+// AGENT SYSTEM INSTRUCTIONS
+// ------------------------------------------------------------------
 
-const SYSTEM_INSTRUCTION = `
-  You are the "Lumina Career Architect", a sophisticated Multi-Agent System.
-  
-  Agents:
-  1. **Scraper Agent**: Retrieve realistic, high-quality job postings. Adhere to filters.
-  2. **Analyst Agent**: Calculate 'matchScore' (0-100). If resume is present, cross-reference deeply.
-  3. **Market Intelligence Engine** (PREMIUM ONLY):
-     - If requested, generate deep-layer forecasts:
-     - **Supply vs Demand**: Analyze role competitiveness (e.g., "Oversaturated", "High Demand").
-     - **Comp Forecast**: Predict salary trends (e.g., "+10% in 1 year").
-     - **Trajectory**: Predict 2-5 year career outcomes for this specific path.
-
-  OUTPUT FORMAT:
-  - JSON Array.
-  - No markdown.
+const HEADHUNTER_INSTRUCTION = `
+  You are the "Headhunter Agent". Your ONLY job is to find and rank job opportunities.
+  - Return realistic, high-quality job postings matching the user's criteria.
+  - Calculate a 'matchScore' (0-100) based on the user's profile and resume.
+  - Do NOT generate market forecasts. Focus solely on the existence of the job and the fit.
+  - OUTPUT: JSON Array of Job objects.
 `;
+
+const ECONOMIST_INSTRUCTION = `
+  You are the "Labor Economist Agent". 
+  - You receive a list of specific Job IDs and Titles.
+  - Your job is to analyze the MACRO market conditions for each specific role in its location.
+  - Determine 'supplyDemandRating' (e.g., "Talent Shortage", "Oversaturated") and 'competitivenessScore' (1-10).
+  - OUTPUT: JSON Array mapping Job ID to economic data.
+`;
+
+const FUTURIST_INSTRUCTION = `
+  You are the "Compensation Futurist Agent".
+  - You receive a list of jobs with current salary ranges.
+  - Your job is to forecast the financial future of these roles over the next 18 months.
+  - Predict 'salaryGrowthForecast' based on inflation, industry trends, and location data.
+  - OUTPUT: JSON Array mapping Job ID to forecast data.
+`;
+
+const STRATEGIST_INSTRUCTION = `
+  You are the "Career Strategist Agent".
+  - You receive a list of jobs.
+  - Your job is to model the long-term career trajectory for a candidate accepting this role.
+  - Predict 'careerTrajectory' (e.g., "Path to CTO", "Lateral move potential only") over 2-5 years.
+  - OUTPUT: JSON Array mapping Job ID to trajectory data.
+`;
+
+// ------------------------------------------------------------------
+// TYPES FOR AGENT INTER-COMMUNICATION
+// ------------------------------------------------------------------
+
+interface BaseJobResponse {
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  salary: string;
+  postedDate: string;
+  platform: 'LinkedIn' | 'Glassdoor' | 'Indeed' | 'Company Site';
+  matchScore: number;
+  matchReason: string;
+  description: string;
+  requirements: string[];
+  url: string;
+}
+
+interface EconomistResponse {
+  id: string;
+  supplyDemandRating: string;
+  competitivenessScore: number;
+}
+
+interface FuturistResponse {
+  id: string;
+  salaryGrowthForecast: string;
+}
+
+interface StrategistResponse {
+  id: string;
+  careerTrajectory: string;
+}
+
+// ------------------------------------------------------------------
+// MAIN COORDINATOR
+// ------------------------------------------------------------------
 
 export const findAndRankJobs = async (
   prefs: UserPreferences,
   onLog: (agent: string, action: string) => void
 ): Promise<Job[]> => {
   
-  onLog("Coordinator", "Initializing Multi-Agent System...");
+  onLog("Coordinator", "Initializing Swarm Sequence...");
 
-  const cacheKey = generateCacheKey(prefs);
-  if (queryCache.has(cacheKey)) {
-    onLog("Coordinator", "Identical query detected in Quantum Cache.");
-    onLog("System", "Retrieving cached results (0ms latency, $0 cost)...");
-    await new Promise(resolve => setTimeout(resolve, 600)); 
-    const cachedJobs = queryCache.get(cacheKey);
-    if (cachedJobs) {
-      onLog("Coordinator", `Restored ${cachedJobs.length} opportunities from memory banks.`);
-      return cachedJobs;
-    }
+  // 1. HEADHUNTER AGENT (Discovery)
+  onLog("Headhunter Agent", `Scanning all networks for ${prefs.jobTitle} roles...`);
+  const baseJobs = await runHeadhunterAgent(prefs, onLog);
+  onLog("Headhunter Agent", `Identified ${baseJobs.length} potential candidates.`);
+
+  // If intelligence is disabled, return early
+  if (!prefs.enableIntelligence) {
+    return baseJobs.map(j => ({ ...j, marketIntelligence: undefined }));
   }
+
+  // 2. INTELLIGENCE SWARM (Parallel Execution)
+  onLog("Coordinator", "Spinning up Intelligence Swarm (3 Nodes)...");
   
-  const model = "gemini-2.5-flash"; 
-
-  onLog("Scraper Agent", `Initiating search for ${prefs.jobTitle} roles in ${prefs.location}...`);
-  if (prefs.enableIntelligence) {
-    onLog("Coordinator", "PREMIUM MODE ACTIVE: Engaging Market Intelligence Engine...");
-  }
-  
-  if (prefs.resume) {
-    onLog("Analyst Agent", `Ingesting Resume: ${prefs.resume.fileName}...`);
-  }
-
-  const userPrompt = `
-    Find 6-8 jobs matching this profile:
-    - Role: ${prefs.jobTitle}
-    - Location: ${prefs.location}
-    - Level: ${prefs.experienceLevel}
-    - Salary: $${prefs.salaryMin}k - $${prefs.salaryMax}k
-    - Work Mode: ${prefs.workMode}
-    - Keywords: ${prefs.keySkills}
-    ${prefs.enableIntelligence ? "INCLUDE MARKET INTELLIGENCE DATA FIELDS." : ""}
-    ${prefs.resume ? "- REFER TO THE ATTACHED RESUME FOR MATCH SCORING." : ""}
-  `;
-
-  const parts: any[] = [{ text: userPrompt }];
-  
-  if (prefs.resume) {
-    parts.push({
-      inlineData: {
-        mimeType: prefs.resume.mimeType,
-        data: prefs.resume.base64
-      }
-    });
-  }
-
-  // Define Schema Properties
-  const baseProperties = {
-    id: { type: Type.STRING },
-    title: { type: Type.STRING },
-    company: { type: Type.STRING },
-    location: { type: Type.STRING },
-    salary: { type: Type.STRING },
-    postedDate: { type: Type.STRING },
-    platform: { type: Type.STRING, enum: ['LinkedIn', 'Glassdoor', 'Indeed', 'Company Site'] },
-    matchScore: { type: Type.NUMBER },
-    matchReason: { type: Type.STRING },
-    description: { type: Type.STRING },
-    requirements: { type: Type.ARRAY, items: { type: Type.STRING } },
-    url: { type: Type.STRING }
-  };
-
-  // Add Intelligence Properties if requested
-  const finalProperties = prefs.enableIntelligence ? {
-    ...baseProperties,
-    marketIntelligence: {
-      type: Type.OBJECT,
-      properties: {
-        supplyDemandRating: { type: Type.STRING },
-        competitivenessScore: { type: Type.NUMBER },
-        salaryGrowthForecast: { type: Type.STRING },
-        careerTrajectory: { type: Type.STRING }
-      },
-      required: ['supplyDemandRating', 'competitivenessScore', 'salaryGrowthForecast', 'careerTrajectory']
-    }
-  } : baseProperties;
+  // Create a context summary for the sub-agents to save tokens/time
+  // We pass the simplified job list to them so they know what they are analyzing.
+  const jobContext = baseJobs.map(j => ({
+    id: j.id,
+    title: j.title,
+    company: j.company,
+    location: j.location,
+    salary: j.salary
+  }));
 
   try {
-    if (prefs.enableIntelligence) {
-        onLog("Market Intel", "Computing Supply/Demand curves and Compensation Forecasts...");
-    } else {
-        onLog("Analyst Agent", "Processing retrieved data and calculating Match Scores...");
-    }
+    const [ecoData, futData, stratData] = await Promise.all([
+      runEconomistAgent(jobContext, prefs, onLog),
+      runFuturistAgent(jobContext, prefs, onLog),
+      runStrategistAgent(jobContext, prefs, onLog)
+    ]);
 
-    const response = await ai.models.generateContent({
-      model: model,
-      contents: { parts: parts },
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: finalProperties,
-            required: ['id', 'title', 'company', 'location', 'matchScore', 'platform']
-          }
+    // 3. MERGER
+    onLog("Coordinator", "Aggregating intelligence streams...");
+    
+    const enrichedJobs: Job[] = baseJobs.map(job => {
+      const eco = ecoData.find(e => e.id === job.id);
+      const fut = futData.find(f => f.id === job.id);
+      const strat = stratData.find(s => s.id === job.id);
+
+      return {
+        ...job,
+        marketIntelligence: {
+          supplyDemandRating: eco?.supplyDemandRating || "Data Unavailable",
+          competitivenessScore: eco?.competitivenessScore || 5,
+          salaryGrowthForecast: fut?.salaryGrowthForecast || "Steady",
+          careerTrajectory: strat?.careerTrajectory || "Standard Progression"
         }
-      }
+      };
     });
 
-    onLog("Coordinator", "Finalizing results...");
-    
-    const text = response.text;
-    if (!text) throw new Error("No data received from AI agents.");
-    
-    const jobs = JSON.parse(text) as Job[];
-    const sortedJobs = jobs.sort((a, b) => b.matchScore - a.matchScore);
-
-    queryCache.set(cacheKey, sortedJobs);
-    
-    return sortedJobs;
+    onLog("Coordinator", "Swarm execution complete.");
+    return enrichedJobs;
 
   } catch (error) {
-    console.error("Agent System Error:", error);
-    onLog("System", "Error encountered during agent execution.");
-    throw error;
+    onLog("System", "Swarm Partial Failure. Reverting to base data.");
+    console.error(error);
+    return baseJobs.map(j => ({ ...j, marketIntelligence: undefined }));
   }
 };
+
+// ------------------------------------------------------------------
+// AGENT IMPLEMENTATIONS
+// ------------------------------------------------------------------
+
+async function runHeadhunterAgent(prefs: UserPreferences, onLog: (agent: string, action: string) => void): Promise<BaseJobResponse[]> {
+  const prompt = `
+    Find 6-8 active job postings matching:
+    - Role: ${prefs.jobTitle}
+    - Location: ${prefs.location}
+    - Pay: $${prefs.salaryMin}k - $${prefs.salaryMax}k
+    - Type: ${prefs.employmentType} (${prefs.workMode})
+    ${prefs.resume ? "Use the attached resume to calculate strict match scores." : ""}
+  `;
+
+  const parts: any[] = [{ text: prompt }];
+  if (prefs.resume) {
+    onLog("Headhunter Agent", "Cross-referencing Resume against Job Descriptions...");
+    parts.push({ inlineData: { mimeType: prefs.resume.mimeType, data: prefs.resume.base64 } });
+  }
+
+  const response = await ai.models.generateContent({
+    model: model,
+    contents: { parts },
+    config: {
+      systemInstruction: HEADHUNTER_INSTRUCTION,
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            id: { type: Type.STRING },
+            title: { type: Type.STRING },
+            company: { type: Type.STRING },
+            location: { type: Type.STRING },
+            salary: { type: Type.STRING },
+            postedDate: { type: Type.STRING },
+            platform: { type: Type.STRING, enum: ['LinkedIn', 'Glassdoor', 'Indeed', 'Company Site'] },
+            matchScore: { type: Type.NUMBER },
+            matchReason: { type: Type.STRING },
+            description: { type: Type.STRING },
+            requirements: { type: Type.ARRAY, items: { type: Type.STRING } },
+            url: { type: Type.STRING }
+          },
+          required: ['id', 'title', 'company', 'matchScore']
+        }
+      }
+    }
+  });
+
+  return JSON.parse(response.text || "[]");
+}
+
+async function runEconomistAgent(jobs: any[], prefs: UserPreferences, onLog: (agent: string, action: string) => void): Promise<EconomistResponse[]> {
+  onLog("Labor Economist", `Analyzing supply/demand for ${jobs.length} roles in ${prefs.location}...`);
+  
+  const response = await ai.models.generateContent({
+    model: model,
+    contents: { parts: [{ text: JSON.stringify(jobs) }] },
+    config: {
+      systemInstruction: ECONOMIST_INSTRUCTION,
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            id: { type: Type.STRING },
+            supplyDemandRating: { type: Type.STRING },
+            competitivenessScore: { type: Type.NUMBER },
+          },
+          required: ['id', 'supplyDemandRating', 'competitivenessScore']
+        }
+      }
+    }
+  });
+
+  return JSON.parse(response.text || "[]");
+}
+
+async function runFuturistAgent(jobs: any[], prefs: UserPreferences, onLog: (agent: string, action: string) => void): Promise<FuturistResponse[]> {
+  onLog("Comp Futurist", "Forecasting 18-month salary bands and inflation adjustments...");
+  
+  const response = await ai.models.generateContent({
+    model: model,
+    contents: { parts: [{ text: JSON.stringify(jobs) }] },
+    config: {
+      systemInstruction: FUTURIST_INSTRUCTION,
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            id: { type: Type.STRING },
+            salaryGrowthForecast: { type: Type.STRING },
+          },
+          required: ['id', 'salaryGrowthForecast']
+        }
+      }
+    }
+  });
+
+  return JSON.parse(response.text || "[]");
+}
+
+async function runStrategistAgent(jobs: any[], prefs: UserPreferences, onLog: (agent: string, action: string) => void): Promise<StrategistResponse[]> {
+  onLog("Career Strategist", `Modeling trajectories for '${prefs.experienceLevel}' level profiles...`);
+  
+  const response = await ai.models.generateContent({
+    model: model,
+    contents: { parts: [{ text: JSON.stringify(jobs) }] },
+    config: {
+      systemInstruction: STRATEGIST_INSTRUCTION,
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            id: { type: Type.STRING },
+            careerTrajectory: { type: Type.STRING },
+          },
+          required: ['id', 'careerTrajectory']
+        }
+      }
+    }
+  });
+
+  return JSON.parse(response.text || "[]");
+}

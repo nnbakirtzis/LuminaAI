@@ -30,7 +30,7 @@ const AgentTerminal: React.FC<AgentTerminalProps> = ({ logs, status }) => {
           </div>
           <div className="flex items-center gap-2 text-xs font-mono text-neutral-500 uppercase tracking-widest">
              <BrainCircuit size={14} className="text-gold-500 animate-pulse" />
-             Lumina Multi-Agent System
+             Lumina Multi-Agent Swarm
           </div>
         </div>
 
@@ -44,13 +44,13 @@ const AgentTerminal: React.FC<AgentTerminalProps> = ({ logs, status }) => {
               <span className="text-neutral-600 shrink-0">
                 [{log.timestamp.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second:'2-digit' })}]
               </span>
-              <span className={`${getAgentColor(log.agentName)} font-bold shrink-0 w-32`}>
+              <span className={`${getAgentColor(log.agentName)} font-bold shrink-0 w-36`}>
                 {log.agentName}:
               </span>
               <span className="text-neutral-300">{log.action}</span>
             </div>
           ))}
-          {status !== AgentStatus.COMPLETED && (
+          {status !== AgentStatus.COMPLETED && status !== AgentStatus.ERROR && (
             <div className="flex items-center gap-2 text-gold-500 animate-pulse mt-2">
               <span className="w-2 h-4 bg-gold-500"></span>
               Processing...
@@ -64,9 +64,12 @@ const AgentTerminal: React.FC<AgentTerminalProps> = ({ logs, status }) => {
 
 const getAgentColor = (name: string) => {
   switch (name) {
-    case 'Scraper Agent': return 'text-blue-400';
-    case 'Analyst Agent': return 'text-purple-400';
-    case 'Coordinator': return 'text-gold-500';
+    case 'Headhunter Agent': return 'text-blue-400'; // Blue for Discovery
+    case 'Labor Economist': return 'text-emerald-400'; // Green for Market/Money
+    case 'Comp Futurist': return 'text-cyan-400'; // Cyan for Future/Tech
+    case 'Career Strategist': return 'text-pink-400'; // Pink for Human/Growth
+    case 'Coordinator': return 'text-gold-500'; // Gold for System
+    case 'System': return 'text-red-500'; // Red for Errors
     default: return 'text-gray-400';
   }
 };
