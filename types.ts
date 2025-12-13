@@ -15,6 +15,7 @@ export interface UserPreferences {
     fileName: string;
   };
   enableIntelligence: boolean; // New Premium Flag
+  enableResumeTailoring: boolean; // New Resume Tailoring Flag
 }
 
 export interface User {

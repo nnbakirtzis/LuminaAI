@@ -18,7 +18,7 @@ const MODEL_COMPLEX = "gemini-3-pro-preview";
 const HEADHUNTER_INSTRUCTION = `
   You are the "Headhunter Agent". Your ONLY job is to find and rank job opportunities.
   - Return realistic, high-quality job postings matching the user's criteria.
-  - **Crucially, ONLY find jobs posted within the last 90 days from today's date.**
+  - **Crucially, ONLY find jobs posted within the last 30 days from today's date.**
   - Calculate a 'matchScore' (0-100) based on the user's profile and resume.
   - Do NOT generate market forecasts. Focus solely on the existence of the job and the fit.
   - OUTPUT: JSON Array of Job objects.
@@ -46,6 +46,14 @@ const STRATEGIST_INSTRUCTION = `
   - Your job is to model the long-term career trajectory for a candidate accepting this role.
   - Predict 'careerTrajectory' (e.g., "Path to CTO", "Lateral move potential only") over 2-5 years.
   - OUTPUT: JSON Array mapping Job ID to trajectory data.
+`;
+
+const RESUMATOR_INSTRUCTION = `
+  You are the "Resumator Agent", an expert ATS (Applicant Tracking System) optimizer.
+  - Your task is to rewrite the candidate's existing resume to specifically target the provided Job Description.
+  - **CRITICAL RULE:** Do NOT invent skills, experiences, or degrees that are not in the source resume. You must only rephrase, reorder, or highlight EXISTING information.
+  - Adoption of Tone: Match the keywords and professional tone of the Job Description.
+  - Format: Return clean Markdown. Use H1 for Name, H2 for Sections.
 `;
 
 // ------------------------------------------------------------------
@@ -153,6 +161,39 @@ export const findAndRankJobs = async (
   }
 };
 
+export const generateTailoredResume = async (
+  job: Job,
+  resume: { mimeType: string; base64: string }
+): Promise<string> => {
+  
+  const prompt = `
+    TARGET JOB DESCRIPTION:
+    Title: ${job.title}
+    Company: ${job.company}
+    Keywords/Requirements: ${job.requirements.join(", ")}
+    Description: ${job.description}
+
+    Task: Rewrite the attached resume to maximize ATS match score for this specific job. 
+    Output the full resume in clean Markdown format.
+  `;
+
+  const response = await ai.models.generateContent({
+    model: MODEL_COMPLEX,
+    contents: {
+      parts: [
+        { text: prompt },
+        { inlineData: { mimeType: resume.mimeType, data: resume.base64 } }
+      ]
+    },
+    config: {
+      systemInstruction: RESUMATOR_INSTRUCTION,
+      // We do NOT enforce JSON here, we want free-text Markdown
+    }
+  });
+
+  return response.text || "Failed to generate resume.";
+};
+
 // ------------------------------------------------------------------
 // AGENT IMPLEMENTATIONS
 // ------------------------------------------------------------------
@@ -164,7 +205,7 @@ async function runHeadhunterAgent(prefs: UserPreferences, onLog: (agent: string,
     - Location: ${prefs.location}
     - Pay: $${prefs.salaryMin}k - $${prefs.salaryMax}k
     - Type: ${prefs.employmentType} (${prefs.workMode})
-    - **Posted: Within the last 90 days from today.**
+    - **Posted: Within the last 30 days from today.**
     ${prefs.resume ? "Use the attached resume to calculate strict match scores." : ""}
   `;
 

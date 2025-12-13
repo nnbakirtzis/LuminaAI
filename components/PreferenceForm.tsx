@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { UserPreferences } from '../types';
-import { Search, MapPin, Briefcase, ChevronDown, Check, Building2, Wallet, Upload, FileText, X, TrendingUp } from 'lucide-react';
+import { Search, MapPin, Briefcase, ChevronDown, Check, Building2, Wallet, Upload, FileText, X, TrendingUp, Sparkles } from 'lucide-react';
 
 interface PreferenceFormProps {
   onSubmit: (prefs: UserPreferences) => void;
@@ -23,7 +23,8 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
     employmentType: 'Full-time',
     keySkills: '',
     resume: undefined,
-    enableIntelligence: false
+    enableIntelligence: false,
+    enableResumeTailoring: false
   });
 
   const [isExpDropdownOpen, setIsExpDropdownOpen] = useState(false);
@@ -93,9 +94,15 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
   };
 
   const removeFile = () => {
-    setPrefs(prev => ({ ...prev, resume: undefined }));
+    setPrefs(prev => ({ 
+      ...prev, 
+      resume: undefined,
+      enableResumeTailoring: false // Also disable the feature
+    }));
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
+
+  const isResumeTailorDisabled = !prefs.resume;
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-5xl mx-auto bg-white border border-gray-100 p-8 md:p-10 rounded-2xl shadow-xl animate-slide-up relative overflow-hidden">
@@ -111,6 +118,17 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
           background: #001F3F; /* Navy thumb */
           border: 2px solid white;
           box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* Fix browser autofill styles */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active {
+          -webkit-text-fill-color: #001F3F !important; /* text-navy-900 */
+          box-shadow: 0 0 0px 1000px #F9FAFB inset !important; /* bg-gray-50 */
+          -webkit-box-shadow: 0 0 0px 1000px #F9FAFB inset !important;
+          transition: background-color 5000s ease-in-out 0s;
         }
       `}</style>
 
@@ -292,44 +310,90 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
             </div>
           </div>
           
-           {/* PREMIUM MODE TOGGLE - Updated for Light Theme Luxury (Teal) */}
-           <div className="pt-2">
-            <div 
+           {/* PREMIUM FEATURES GROUP */}
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+             
+             {/* 1. Market Intelligence */}
+             <div 
               onClick={() => setPrefs(prev => ({...prev, enableIntelligence: !prev.enableIntelligence}))}
               className={`
-                group cursor-pointer border rounded-xl p-4 flex items-center justify-between transition-all duration-300
+                group cursor-pointer border rounded-xl p-3 flex flex-col justify-between transition-all duration-300 relative overflow-hidden
                 ${prefs.enableIntelligence 
-                  ? 'bg-navy-900 border-navy-900 shadow-lg ring-2 ring-teal-400/30' 
+                  ? 'bg-navy-900 border-navy-900 shadow-lg ring-1 ring-teal-400/30' 
                   : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-md'}
               `}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex justify-between items-start mb-2">
                 <div className={`
-                  w-10 h-10 rounded-lg flex items-center justify-center transition-colors
-                  ${prefs.enableIntelligence ? 'bg-teal-500 text-white' : 'bg-gray-100 text-gray-400'}
-                `}>
-                  <TrendingUp size={20} />
-                </div>
-                <div>
-                  <h4 className={`text-sm font-bold ${prefs.enableIntelligence ? 'text-white' : 'text-navy-900'}`}>
-                    Market Intelligence Engine
-                  </h4>
-                  <p className="text-[10px] uppercase tracking-wide font-medium mt-0.5" style={{ color: prefs.enableIntelligence ? '#9FB3C8' : '#94a3b8' }}>
-                    {prefs.enableIntelligence ? 'Premium Enabled' : 'Enable Premium Forecasts'}
-                  </p>
-                </div>
+                    w-8 h-8 rounded-lg flex items-center justify-center transition-colors
+                    ${prefs.enableIntelligence ? 'bg-teal-500 text-white' : 'bg-gray-100 text-gray-400'}
+                  `}>
+                    <TrendingUp size={16} />
+                  </div>
+                  <div className={`
+                    w-8 h-4 rounded-full p-0.5 transition-colors duration-300 relative
+                    ${prefs.enableIntelligence ? 'bg-teal-500' : 'bg-gray-200'}
+                  `}>
+                    <div className={`
+                      w-3 h-3 rounded-full bg-white shadow-sm transition-transform duration-300
+                      ${prefs.enableIntelligence ? 'translate-x-4' : 'translate-x-0'}
+                    `}></div>
+                  </div>
               </div>
-              
-              <div className={`
-                w-12 h-6 rounded-full p-1 transition-colors duration-300 relative
-                ${prefs.enableIntelligence ? 'bg-teal-500' : 'bg-gray-200'}
-              `}>
-                <div className={`
-                  w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-300
-                  ${prefs.enableIntelligence ? 'translate-x-6' : 'translate-x-0'}
-                `}></div>
+              <div>
+                <h4 className={`text-xs font-bold ${prefs.enableIntelligence ? 'text-white' : 'text-navy-900'}`}>
+                  Market Intelligence
+                </h4>
+                <p className="text-[10px] mt-0.5 leading-tight" style={{ color: prefs.enableIntelligence ? '#9FB3C8' : '#94a3b8' }}>
+                  Forecasting & Economics
+                </p>
               </div>
             </div>
+
+            {/* 2. Resume Tailoring */}
+            <div 
+              onClick={() => !isResumeTailorDisabled && setPrefs(prev => ({...prev, enableResumeTailoring: !prev.enableResumeTailoring}))}
+              title={isResumeTailorDisabled ? "Upload a resume to enable this feature" : "Enable AI Resume Tailoring"}
+              className={`
+                group border rounded-xl p-3 flex flex-col justify-between transition-all duration-300 relative overflow-hidden
+                ${isResumeTailorDisabled
+                  ? 'bg-gray-50 border-gray-200 opacity-70 cursor-not-allowed'
+                  : `cursor-pointer ${prefs.enableResumeTailoring 
+                      ? 'bg-navy-900 border-navy-900 shadow-lg ring-1 ring-teal-400/30' 
+                      : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-md'}`
+                }
+              `}
+            >
+              <div className="flex justify-between items-start mb-2">
+                  <div className={`
+                    w-8 h-8 rounded-lg flex items-center justify-center transition-colors
+                    ${prefs.enableResumeTailoring && !isResumeTailorDisabled ? 'bg-teal-500 text-white' : 'bg-gray-100 text-gray-400'}
+                  `}>
+                    <Sparkles size={16} />
+                  </div>
+                   <div className={`
+                    w-8 h-4 rounded-full p-0.5 transition-colors duration-300 relative
+                    ${isResumeTailorDisabled
+                      ? 'bg-gray-200'
+                      : `${prefs.enableResumeTailoring ? 'bg-teal-500' : 'bg-gray-200'}`
+                    }
+                  `}>
+                    <div className={`
+                      w-3 h-3 rounded-full bg-white shadow-sm transition-transform duration-300
+                      ${prefs.enableResumeTailoring && !isResumeTailorDisabled ? 'translate-x-4' : 'translate-x-0'}
+                    `}></div>
+                  </div>
+              </div>
+              <div>
+                <h4 className={`text-xs font-bold ${prefs.enableResumeTailoring && !isResumeTailorDisabled ? 'text-white' : 'text-navy-900'}`}>
+                  AI Resume Tailor
+                </h4>
+                <p className="text-[10px] mt-0.5 leading-tight" style={{ color: prefs.enableResumeTailoring && !isResumeTailorDisabled ? '#9FB3C8' : '#94a3b8' }}>
+                  Auto-customize per Job
+                </p>
+              </div>
+            </div>
+
           </div>
 
         </div>
@@ -397,7 +461,7 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
             </span>
           ) : (
             <span className="flex items-center gap-2 relative z-10">
-              {prefs.enableIntelligence ? 'Find Jobs + Forecast' : 'Find Matching Jobs'} 
+              {prefs.enableIntelligence || prefs.enableResumeTailoring ? 'Find Jobs + Enhance' : 'Find Matching Jobs'} 
               <Search size={20} className="group-hover:translate-x-1 transition-transform" />
             </span>
           )}

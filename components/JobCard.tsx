@@ -1,12 +1,14 @@
 import React from 'react';
 import { Job } from '../types';
-import { Briefcase, MapPin, DollarSign, ExternalLink, Calendar, TrendingUp, BarChart3, LineChart } from 'lucide-react';
+import { Briefcase, MapPin, DollarSign, ExternalLink, Calendar, TrendingUp, BarChart3, LineChart, Sparkles } from 'lucide-react';
 
 interface JobCardProps {
   job: Job;
+  enableResumeTailoring: boolean;
+  onGenerateResume: (job: Job) => void;
 }
 
-const JobCard: React.FC<JobCardProps> = ({ job }) => {
+const JobCard: React.FC<JobCardProps> = ({ job, enableResumeTailoring, onGenerateResume }) => {
   return (
     <div className="group relative bg-white border border-slate-200 hover:border-navy-200 transition-all duration-300 rounded-xl p-6 flex flex-col h-full hover:shadow-2xl hover:shadow-navy-900/10 overflow-hidden">
       
@@ -145,15 +147,29 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
         </div>
       )}
 
-      {/* Action */}
-      <a 
-        href={job.url}
-        target="_blank"
-        rel="noopener noreferrer" 
-        className="mt-auto flex items-center justify-center gap-2 w-full py-3.5 bg-slate-50 text-navy-900 font-bold text-sm hover:bg-navy-900 hover:text-white transition-all rounded-lg border border-slate-200 hover:border-navy-900 hover:shadow-lg hover:-translate-y-0.5"
-      >
-        Apply Now <ExternalLink size={16} />
-      </a>
+      {/* Action Buttons */}
+      <div className="mt-auto space-y-3">
+        {enableResumeTailoring && (
+            <button 
+              onClick={(e) => {
+                e.preventDefault();
+                onGenerateResume(job);
+              }}
+              className="w-full flex items-center justify-center gap-2 py-3 bg-gold-50 text-gold-700 font-bold text-sm rounded-lg border border-gold-200 hover:bg-gold-100 hover:border-gold-300 transition-all shadow-sm"
+            >
+              <Sparkles size={16} /> Tailor Resume for Role
+            </button>
+        )}
+        
+        <a 
+          href={job.url}
+          target="_blank"
+          rel="noopener noreferrer" 
+          className="flex items-center justify-center gap-2 w-full py-3.5 bg-slate-50 text-navy-900 font-bold text-sm hover:bg-navy-900 hover:text-white transition-all rounded-lg border border-slate-200 hover:border-navy-900 hover:shadow-lg hover:-translate-y-0.5"
+        >
+          Apply Now <ExternalLink size={16} />
+        </a>
+      </div>
     </div>
   );
 };

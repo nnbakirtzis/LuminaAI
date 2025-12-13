@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { UserPreferences, Job, AgentStatus, AgentLog } from '../types';
-import { findAndRankJobs } from '../services/gemini';
+import { findAndRankJobs, generateTailoredResume } from '../services/gemini';
 import PreferenceForm from '../components/PreferenceForm';
 import JobCard from '../components/JobCard';
 import StatusVisualizer from '../components/StatusVisualizer';
 import DebugSidebar from '../components/DebugSidebar';
+import ResumeModal from '../components/ResumeModal';
 import { Sparkles, Terminal } from 'lucide-react';
 
 const Home: React.FC = () => {
@@ -13,6 +14,12 @@ const Home: React.FC = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const [currentPrefs, setCurrentPrefs] = useState<UserPreferences | null>(null);
+
+  // Resume Tailoring State
+  const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
+  const [resumeJob, setResumeJob] = useState<Job | null>(null);
+  const [resumeContent, setResumeContent] = useState<string>('');
+  const [isResumeLoading, setIsResumeLoading] = useState(false);
 
   const addLog = (agentName: string, action: string) => {
     setLogs(prev => [...prev, {
@@ -49,9 +56,44 @@ const Home: React.FC = () => {
     }
   };
 
+  const handleGenerateResume = async (job: Job) => {
+    if (!currentPrefs?.resume) {
+      alert("Please upload a resume in the search preferences to use this feature.");
+      return;
+    }
+
+    setResumeJob(job);
+    setIsResumeModalOpen(true);
+    setIsResumeLoading(true);
+    setResumeContent('');
+    
+    // Add log to sidebar even though it's post-search
+    addLog("Resumator Agent", `Tailoring CV for ${job.title} @ ${job.company}...`);
+
+    try {
+      const tailoredText = await generateTailoredResume(job, currentPrefs.resume);
+      setResumeContent(tailoredText);
+      addLog("Resumator Agent", `Resume generation complete for ${job.id}.`);
+    } catch (error) {
+      console.error(error);
+      setResumeContent("Error generating resume. Please try again.");
+      addLog("Resumator Agent", `Error generating resume for ${job.id}.`);
+    } finally {
+      setIsResumeLoading(false);
+    }
+  };
+
   return (
     <div className="relative">
       <DebugSidebar isOpen={isDebugOpen} onClose={() => setIsDebugOpen(false)} logs={logs} />
+      
+      <ResumeModal 
+        isOpen={isResumeModalOpen} 
+        onClose={() => setIsResumeModalOpen(false)}
+        job={resumeJob}
+        content={resumeContent}
+        isLoading={isResumeLoading}
+      />
       
       {/* Floating Debug Button for this page only */}
       <button 
@@ -113,7 +155,12 @@ const Home: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {jobs.map(job => (
-                  <JobCard key={job.id} job={job} />
+                  <JobCard 
+                    key={job.id} 
+                    job={job} 
+                    enableResumeTailoring={currentPrefs?.enableResumeTailoring || false}
+                    onGenerateResume={handleGenerateResume}
+                  />
                 ))}
               </div>
               
