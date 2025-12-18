@@ -21,7 +21,7 @@ const MODEL_PRO = "gemini-3-pro-preview";
 const HEADHUNTER_INSTRUCTION = `
   You are the "Headhunter Agent". Your ONLY job is to find and rank job opportunities.
   - Return realistic, high-quality job postings matching the user's criteria.
-  - **Crucially, ONLY find jobs posted within the last 30 days from today's date.**
+  - **Crucially, ONLY find jobs posted within the last 30 days from the provided Current Date.**
   - Calculate a 'matchScore' (0-100) based on the user's profile and resume.
   - Do NOT generate market forecasts. Focus solely on the existence of the job and the fit.
   - OUTPUT: JSON Array of Job objects.
@@ -115,7 +115,8 @@ export const findAndRankJobs = async (
     return baseJobs.map(j => ({ ...j, marketIntelligence: undefined }));
   }
 
-  // 2. INTELLIGENCE SWARM (Parallel Execution) - Uses Pro for advanced modeling
+  // 2. INTELLIGENCE SWARM (Parallel Execution) 
+  // Optimization: Hybrid Swarm. Futurist stays on Pro (Analytical), others move to Flash (Speed/Classification).
   onLog("Coordinator", "Spinning up Intelligence Swarm (3 Nodes)...");
   
   const jobContext = baseJobs.map(j => ({
@@ -201,12 +202,13 @@ export const generateTailoredResume = async (
 
 async function runHeadhunterAgent(prefs: UserPreferences, onLog: (agent: string, action: string) => void): Promise<BaseJobResponse[]> {
   const prompt = `
+    Current Date: ${new Date().toLocaleDateString()}
     Find 6-8 active job postings matching:
     - Role: ${prefs.jobTitle}
     - Location: ${prefs.location}
     - Pay: $${prefs.salaryMin}k - $${prefs.salaryMax}k
     - Type: ${prefs.employmentType} (${prefs.workMode})
-    - **Posted: Within the last 30 days from today.**
+    - **Posted: Within the last 30 days.**
     ${prefs.resume ? "Use the attached resume to calculate strict match scores." : ""}
   `;
 
@@ -252,8 +254,9 @@ async function runHeadhunterAgent(prefs: UserPreferences, onLog: (agent: string,
 async function runEconomistAgent(jobs: any[], prefs: UserPreferences, onLog: (agent: string, action: string) => void): Promise<EconomistResponse[]> {
   onLog("Labor Economist", `Analyzing supply/demand for ${jobs.length} roles in ${prefs.location}...`);
   
+  // Optimization: Supply/Demand is a classification task. Flash is faster and sufficient.
   const response = await ai.models.generateContent({
-    model: MODEL_PRO,
+    model: MODEL_FLASH, 
     contents: { parts: [{ text: JSON.stringify(jobs) }] },
     config: {
       systemInstruction: ECONOMIST_INSTRUCTION,
@@ -279,6 +282,7 @@ async function runEconomistAgent(jobs: any[], prefs: UserPreferences, onLog: (ag
 async function runFuturistAgent(jobs: any[], prefs: UserPreferences, onLog: (agent: string, action: string) => void): Promise<FuturistResponse[]> {
   onLog("Comp Futurist", "Forecasting 18-month salary bands and inflation adjustments...");
   
+  // Optimization: Forecasting requires deep reasoning. Keep on Pro.
   const response = await ai.models.generateContent({
     model: MODEL_PRO,
     contents: { parts: [{ text: JSON.stringify(jobs) }] },
@@ -305,8 +309,9 @@ async function runFuturistAgent(jobs: any[], prefs: UserPreferences, onLog: (age
 async function runStrategistAgent(jobs: any[], prefs: UserPreferences, onLog: (agent: string, action: string) => void): Promise<StrategistResponse[]> {
   onLog("Career Strategist", `Modeling trajectories for '${prefs.experienceLevel}' level profiles...`);
   
+  // Optimization: Career trajectory is general knowledge pattern matching. Flash is sufficient.
   const response = await ai.models.generateContent({
-    model: MODEL_PRO,
+    model: MODEL_FLASH,
     contents: { parts: [{ text: JSON.stringify(jobs) }] },
     config: {
       systemInstruction: STRATEGIST_INSTRUCTION,
