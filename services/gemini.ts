@@ -2,14 +2,17 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { Job, UserPreferences, MarketIntelligence } from "../types";
 
 // Initialize the Gemini client
-// API Key is strictly obtained from process.env.API_KEY as per guidelines
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-// Model Selection based on Task Complexity Guidelines:
-// - Basic Text Tasks (e.g., extraction, simple Q&A): 'gemini-2.5-flash'
-// - Complex Text Tasks (e.g., advanced reasoning, STEM, forecasting): 'gemini-3-pro-preview'
-const MODEL_FAST = "gemini-2.5-flash"; 
-const MODEL_COMPLEX = "gemini-3-pro-preview";
+/**
+ * Model Selection Strategy:
+ * - gemini-3-flash-preview: Ideal for Headhunting (Search/Match) and Resumator (Contextual Rewriting).
+ *   Offers the best balance of reasoning speed and cost.
+ * - gemini-3-pro-preview: Reserved for deep analytical 'Premium' agents (Economist, Futurist, Strategist)
+ *   where long-range forecasting and macro-reasoning are paramount.
+ */
+const MODEL_FLASH = "gemini-3-flash-preview"; 
+const MODEL_PRO = "gemini-3-pro-preview";
 
 // ------------------------------------------------------------------
 // AGENT SYSTEM INSTRUCTIONS
@@ -102,7 +105,7 @@ export const findAndRankJobs = async (
   
   onLog("Coordinator", "Initializing Swarm Sequence...");
 
-  // 1. HEADHUNTER AGENT (Discovery) - Uses Fast Model
+  // 1. HEADHUNTER AGENT (Discovery) - Uses Flash 3 for speed and improved match reasoning
   onLog("Headhunter Agent", `Scanning all networks for ${prefs.jobTitle} roles...`);
   const baseJobs = await runHeadhunterAgent(prefs, onLog);
   onLog("Headhunter Agent", `Identified ${baseJobs.length} potential candidates.`);
@@ -112,11 +115,9 @@ export const findAndRankJobs = async (
     return baseJobs.map(j => ({ ...j, marketIntelligence: undefined }));
   }
 
-  // 2. INTELLIGENCE SWARM (Parallel Execution) - Uses Complex/Reasoning Model
+  // 2. INTELLIGENCE SWARM (Parallel Execution) - Uses Pro for advanced modeling
   onLog("Coordinator", "Spinning up Intelligence Swarm (3 Nodes)...");
   
-  // Create a context summary for the sub-agents to save tokens/time
-  // We pass the simplified job list to them so they know what they are analyzing.
   const jobContext = baseJobs.map(j => ({
     id: j.id,
     title: j.title,
@@ -177,8 +178,9 @@ export const generateTailoredResume = async (
     Output the full resume in clean Markdown format.
   `;
 
+  // Migrated to Flash 3 for near-instant responsiveness in the UI modal
   const response = await ai.models.generateContent({
-    model: MODEL_COMPLEX,
+    model: MODEL_FLASH,
     contents: {
       parts: [
         { text: prompt },
@@ -187,7 +189,6 @@ export const generateTailoredResume = async (
     },
     config: {
       systemInstruction: RESUMATOR_INSTRUCTION,
-      // We do NOT enforce JSON here, we want free-text Markdown
     }
   });
 
@@ -215,9 +216,8 @@ async function runHeadhunterAgent(prefs: UserPreferences, onLog: (agent: string,
     parts.push({ inlineData: { mimeType: prefs.resume.mimeType, data: prefs.resume.base64 } });
   }
 
-  // Using MODEL_FAST (gemini-2.5-flash) for basic text/extraction tasks
   const response = await ai.models.generateContent({
-    model: MODEL_FAST,
+    model: MODEL_FLASH,
     contents: { parts },
     config: {
       systemInstruction: HEADHUNTER_INSTRUCTION,
@@ -252,9 +252,8 @@ async function runHeadhunterAgent(prefs: UserPreferences, onLog: (agent: string,
 async function runEconomistAgent(jobs: any[], prefs: UserPreferences, onLog: (agent: string, action: string) => void): Promise<EconomistResponse[]> {
   onLog("Labor Economist", `Analyzing supply/demand for ${jobs.length} roles in ${prefs.location}...`);
   
-  // Using MODEL_COMPLEX (gemini-3-pro-preview) for advanced reasoning/economic analysis
   const response = await ai.models.generateContent({
-    model: MODEL_COMPLEX,
+    model: MODEL_PRO,
     contents: { parts: [{ text: JSON.stringify(jobs) }] },
     config: {
       systemInstruction: ECONOMIST_INSTRUCTION,
@@ -280,9 +279,8 @@ async function runEconomistAgent(jobs: any[], prefs: UserPreferences, onLog: (ag
 async function runFuturistAgent(jobs: any[], prefs: UserPreferences, onLog: (agent: string, action: string) => void): Promise<FuturistResponse[]> {
   onLog("Comp Futurist", "Forecasting 18-month salary bands and inflation adjustments...");
   
-  // Using MODEL_COMPLEX (gemini-3-pro-preview) for forecasting/trends
   const response = await ai.models.generateContent({
-    model: MODEL_COMPLEX,
+    model: MODEL_PRO,
     contents: { parts: [{ text: JSON.stringify(jobs) }] },
     config: {
       systemInstruction: FUTURIST_INSTRUCTION,
@@ -307,9 +305,8 @@ async function runFuturistAgent(jobs: any[], prefs: UserPreferences, onLog: (age
 async function runStrategistAgent(jobs: any[], prefs: UserPreferences, onLog: (agent: string, action: string) => void): Promise<StrategistResponse[]> {
   onLog("Career Strategist", `Modeling trajectories for '${prefs.experienceLevel}' level profiles...`);
   
-  // Using MODEL_COMPLEX (gemini-3-pro-preview) for career modeling/reasoning
   const response = await ai.models.generateContent({
-    model: MODEL_COMPLEX,
+    model: MODEL_PRO,
     contents: { parts: [{ text: JSON.stringify(jobs) }] },
     config: {
       systemInstruction: STRATEGIST_INSTRUCTION,
