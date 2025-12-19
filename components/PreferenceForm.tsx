@@ -55,6 +55,14 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
     }
 
     setIsLocating(true);
+    
+    // Increased timeout to 10s and disabled high accuracy for better reliability on mobile
+    const options = {
+      enableHighAccuracy: false, 
+      timeout: 10000, 
+      maximumAge: 0 
+    };
+
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
@@ -78,11 +86,20 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
         }
       },
       (error) => {
-        console.error("Error getting location", error);
         setIsLocating(false);
-        alert("Unable to retrieve your location. Please check your permissions.");
+        // Safe logging for error object
+        const errorMessage = error.message || 'Unknown error';
+        console.error("Error getting location:", errorMessage);
+        
+        if (error.code === error.TIMEOUT) {
+          alert("Location request timed out. Please enter your location manually.");
+        } else if (error.code === error.PERMISSION_DENIED) {
+          alert("Location permission denied. Please enable it in your browser settings or enter manually.");
+        } else {
+          alert("Unable to retrieve location. Please enter it manually.");
+        }
       },
-      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      options
     );
   };
 

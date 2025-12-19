@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { Job, UserPreferences, MarketIntelligence } from "../types";
 
@@ -13,6 +14,48 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
  */
 const MODEL_FLASH = "gemini-3-flash-preview"; 
 const MODEL_PRO = "gemini-3-pro-preview";
+
+// Estimated Pricing per 1M Tokens (Based on Gemini 1.5 rates as proxy for preview)
+const PRICING = {
+  [MODEL_FLASH]: { input: 0.075, output: 0.30 }, // $0.075 / 1M Input, $0.30 / 1M Output
+  [MODEL_PRO]: { input: 3.50, output: 10.50 }    // $3.50 / 1M Input, $10.50 / 1M Output
+};
+
+// ------------------------------------------------------------------
+// COST TRACKING SYSTEM
+// ------------------------------------------------------------------
+
+class CostTracker {
+  private costs: { agent: string; model: string; input: number; output: number; cost: number }[] = [];
+
+  track(agent: string, model: string, usage: { promptTokenCount?: number; candidatesTokenCount?: number } | undefined) {
+    if (!usage) return;
+
+    const input = usage.promptTokenCount || 0;
+    const output = usage.candidatesTokenCount || 0;
+    
+    // Get pricing or default to Flash rates if unknown
+    const rates = PRICING[model as keyof typeof PRICING] || PRICING[MODEL_FLASH];
+    
+    const cost = (input / 1_000_000 * rates.input) + (output / 1_000_000 * rates.output);
+
+    this.costs.push({ agent, model, input, output, cost });
+  }
+
+  logSummary(onLog: (agent: string, action: string) => void) {
+    let totalCost = 0;
+    onLog("System", "--- 💰 RUN COST ANALYSIS ---");
+    
+    this.costs.forEach(entry => {
+      totalCost += entry.cost;
+      const modelShort = entry.model.includes('flash') ? 'Flash' : 'Pro';
+      onLog("System", `${entry.agent} (${modelShort}): $${entry.cost.toFixed(6)} (${entry.input + entry.output} toks)`);
+    });
+
+    onLog("System", `TOTAL ESTIMATED COST: $${totalCost.toFixed(6)}`);
+    onLog("System", "------------------------------");
+  }
+}
 
 // ------------------------------------------------------------------
 // AGENT SYSTEM INSTRUCTIONS
@@ -103,21 +146,24 @@ export const findAndRankJobs = async (
   onLog: (agent: string, action: string) => void
 ): Promise<Job[]> => {
   
+  const costTracker = new CostTracker();
+
   onLog("Coordinator", "Initializing Swarm Sequence...");
 
   // 1. HEADHUNTER AGENT (Discovery) - Uses Flash 3 for speed and improved match reasoning
   onLog("Headhunter Agent", `Scanning all networks for ${prefs.jobTitle} roles...`);
-  const baseJobs = await runHeadhunterAgent(prefs, onLog);
+  const baseJobs = await runHeadhunterAgent(prefs, onLog, costTracker);
   onLog("Headhunter Agent", `Identified ${baseJobs.length} potential candidates.`);
 
   // If intelligence is disabled, return early
   if (!prefs.enableIntelligence) {
+    costTracker.logSummary(onLog); // Log costs before returning
     return baseJobs.map(j => ({ ...j, marketIntelligence: undefined }));
   }
 
   // 2. INTELLIGENCE SWARM (Parallel Execution) 
   // Optimization: Hybrid Swarm. Futurist stays on Pro (Analytical), others move to Flash (Speed/Classification).
-  onLog("Coordinator", "Spinning up Intelligence Swarm (3 Nodes)...");
+  onLog("Coordinator", "Activating Intelligence Swarm (3 Nodes)...");
   
   const jobContext = baseJobs.map(j => ({
     id: j.id,
@@ -129,9 +175,9 @@ export const findAndRankJobs = async (
 
   try {
     const [ecoData, futData, stratData] = await Promise.all([
-      runEconomistAgent(jobContext, prefs, onLog),
-      runFuturistAgent(jobContext, prefs, onLog),
-      runStrategistAgent(jobContext, prefs, onLog)
+      runEconomistAgent(jobContext, prefs, onLog, costTracker),
+      runFuturistAgent(jobContext, prefs, onLog, costTracker),
+      runStrategistAgent(jobContext, prefs, onLog, costTracker)
     ]);
 
     // 3. MERGER
@@ -154,11 +200,16 @@ export const findAndRankJobs = async (
     });
 
     onLog("Coordinator", "Swarm execution complete.");
+    
+    // Log Final Cost Summary
+    costTracker.logSummary(onLog);
+
     return enrichedJobs;
 
   } catch (error) {
     onLog("System", "Swarm Partial Failure. Reverting to base data.");
     console.error(error);
+    costTracker.logSummary(onLog); // Log whatever costs were incurred
     return baseJobs.map(j => ({ ...j, marketIntelligence: undefined }));
   }
 };
@@ -200,7 +251,11 @@ export const generateTailoredResume = async (
 // AGENT IMPLEMENTATIONS
 // ------------------------------------------------------------------
 
-async function runHeadhunterAgent(prefs: UserPreferences, onLog: (agent: string, action: string) => void): Promise<BaseJobResponse[]> {
+async function runHeadhunterAgent(
+  prefs: UserPreferences, 
+  onLog: (agent: string, action: string) => void,
+  costTracker: CostTracker
+): Promise<BaseJobResponse[]> {
   const prompt = `
     Current Date: ${new Date().toLocaleDateString()}
     Find 6-8 active job postings matching:
@@ -248,10 +303,17 @@ async function runHeadhunterAgent(prefs: UserPreferences, onLog: (agent: string,
     }
   });
 
+  costTracker.track("Headhunter Agent", MODEL_FLASH, response.usageMetadata);
+
   return JSON.parse(response.text || "[]");
 }
 
-async function runEconomistAgent(jobs: any[], prefs: UserPreferences, onLog: (agent: string, action: string) => void): Promise<EconomistResponse[]> {
+async function runEconomistAgent(
+  jobs: any[], 
+  prefs: UserPreferences, 
+  onLog: (agent: string, action: string) => void,
+  costTracker: CostTracker
+): Promise<EconomistResponse[]> {
   onLog("Labor Economist", `Analyzing supply/demand for ${jobs.length} roles in ${prefs.location}...`);
   
   // Optimization: Supply/Demand is a classification task. Flash is faster and sufficient.
@@ -276,10 +338,17 @@ async function runEconomistAgent(jobs: any[], prefs: UserPreferences, onLog: (ag
     }
   });
 
+  costTracker.track("Labor Economist", MODEL_FLASH, response.usageMetadata);
+
   return JSON.parse(response.text || "[]");
 }
 
-async function runFuturistAgent(jobs: any[], prefs: UserPreferences, onLog: (agent: string, action: string) => void): Promise<FuturistResponse[]> {
+async function runFuturistAgent(
+  jobs: any[], 
+  prefs: UserPreferences, 
+  onLog: (agent: string, action: string) => void,
+  costTracker: CostTracker
+): Promise<FuturistResponse[]> {
   onLog("Comp Futurist", "Forecasting 18-month salary bands and inflation adjustments...");
   
   // Optimization: Forecasting requires deep reasoning. Keep on Pro.
@@ -303,10 +372,17 @@ async function runFuturistAgent(jobs: any[], prefs: UserPreferences, onLog: (age
     }
   });
 
+  costTracker.track("Comp Futurist", MODEL_PRO, response.usageMetadata);
+
   return JSON.parse(response.text || "[]");
 }
 
-async function runStrategistAgent(jobs: any[], prefs: UserPreferences, onLog: (agent: string, action: string) => void): Promise<StrategistResponse[]> {
+async function runStrategistAgent(
+  jobs: any[], 
+  prefs: UserPreferences, 
+  onLog: (agent: string, action: string) => void,
+  costTracker: CostTracker
+): Promise<StrategistResponse[]> {
   onLog("Career Strategist", `Modeling trajectories for '${prefs.experienceLevel}' level profiles...`);
   
   // Optimization: Career trajectory is general knowledge pattern matching. Flash is sufficient.
@@ -329,6 +405,8 @@ async function runStrategistAgent(jobs: any[], prefs: UserPreferences, onLog: (a
       }
     }
   });
+
+  costTracker.track("Career Strategist", MODEL_FLASH, response.usageMetadata);
 
   return JSON.parse(response.text || "[]");
 }
