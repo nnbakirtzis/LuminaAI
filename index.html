@@ -1,8 +1,13 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#001F3F">
+    <link rel="manifest" href="metadata.json">
     <title>Lumina Careers - AI Job Finder</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -11,7 +16,7 @@
           extend: {
             fontFamily: {
               sans: ['Inter', 'sans-serif'],
-              display: ['Manrope', 'sans-serif'], // Geometric sans for headings
+              display: ['Manrope', 'sans-serif'],
             },
             colors: {
               navy: {
@@ -24,14 +29,14 @@
                 600: '#486581',
                 700: '#334E68',
                 800: '#243B53',
-                900: '#001F3F', // Primary Navy
+                900: '#001F3F',
                 950: '#001123',
               },
               teal: {
                 50: '#F0FAFA',
                 100: '#C8EBEB',
                 400: '#4FD1C5',
-                500: '#008080', // Success Teal
+                500: '#008080',
                 600: '#006666',
                 700: '#004D4D',
               },
@@ -41,7 +46,7 @@
                 200: '#EADBC2',
                 300: '#DFC6A0',
                 400: '#D4B17D',
-                500: '#D4AF37', // Subtle Luxury Gold
+                500: '#D4AF37',
                 600: '#A17D48',
                 700: '#795D36',
                 800: '#503E24',
@@ -51,6 +56,7 @@
             animation: {
               'fade-in': 'fadeIn 0.5s ease-out',
               'slide-up': 'slideUp 0.6s ease-out',
+              'shimmer': 'shimmer 2s infinite',
             },
             keyframes: {
               fadeIn: {
@@ -60,6 +66,9 @@
               slideUp: {
                 '0%': { transform: 'translateY(20px)', opacity: '0' },
                 '100%': { transform: 'translateY(0)', opacity: '1' },
+              },
+              shimmer: {
+                '100%': { transform: 'translateX(100%)' },
               }
             }
           },
@@ -67,20 +76,29 @@
       };
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <script type="importmap">
-{
-  "imports": {
-    "react-dom/": "https://esm.sh/react-dom@^19.2.1/",
-    "@google/genai": "https://esm.sh/@google/genai@^1.32.0",
-    "react/": "https://esm.sh/react@^19.2.1/",
-    "react": "https://esm.sh/react@^19.2.1",
-    "lucide-react": "https://esm.sh/lucide-react@^0.559.0",
-    "react-router-dom": "https://esm.sh/react-router-dom@6.28.0"
-  }
-}
-</script>
-</head>
-  <body class="bg-gray-50 text-slate-800 antialiased font-sans selection:bg-navy-900 selection:text-white">
+    <script type="importmap">
+    {
+      "imports": {
+        "react-dom/": "https://esm.sh/react-dom@^19.2.1/",
+        "@google/genai": "https://esm.sh/@google/genai@^1.32.0",
+        "react/": "https://esm.sh/react@^19.2.1/",
+        "react": "https://esm.sh/react@^19.2.1",
+        "lucide-react": "https://esm.sh/lucide-react@^0.559.0",
+        "react-router-dom": "https://esm.sh/react-router-dom@6.28.0"
+      }
+    }
+    </script>
+    <style>
+      /* Ensure full height on mobile and handle notch spacing */
+      body {
+        min-height: 100vh;
+        min-height: -webkit-fill-available;
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 text-slate-800 antialiased font-sans selection:bg-navy-900 selection:text-white overflow-x-hidden">
     <div id="root"></div>
   </body>
 </html>

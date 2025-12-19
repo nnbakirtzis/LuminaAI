@@ -1,6 +1,7 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { UserPreferences } from '../types';
-import { Search, MapPin, Briefcase, ChevronDown, Check, Building2, Wallet, Upload, FileText, X, TrendingUp, Sparkles } from 'lucide-react';
+import { Search, MapPin, Briefcase, ChevronDown, Check, Building2, Wallet, Upload, FileText, X, TrendingUp, Sparkles, Navigation } from 'lucide-react';
 
 interface PreferenceFormProps {
   onSubmit: (prefs: UserPreferences) => void;
@@ -28,6 +29,7 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
   });
 
   const [isExpDropdownOpen, setIsExpDropdownOpen] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -44,6 +46,44 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(prefs);
+  };
+
+  const handleLocateMe = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
+
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          // Simple reverse geocoding using a public API (no key needed for basic usage)
+          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
+          const data = await response.json();
+          const city = data.address.city || data.address.town || data.address.village || data.address.suburb;
+          const country = data.address.country;
+          
+          if (city) {
+            setPrefs(prev => ({ ...prev, location: `${city}, ${country}` }));
+          } else {
+            setPrefs(prev => ({ ...prev, location: `${latitude.toFixed(2)}, ${longitude.toFixed(2)}` }));
+          }
+        } catch (err) {
+          console.error("Geocoding failed", err);
+          setPrefs(prev => ({ ...prev, location: `${latitude.toFixed(2)}, ${longitude.toFixed(2)}` }));
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      (error) => {
+        console.error("Error getting location", error);
+        setIsLocating(false);
+        alert("Unable to retrieve your location. Please check your permissions.");
+      },
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+    );
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -97,7 +137,7 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
     setPrefs(prev => ({ 
       ...prev, 
       resume: undefined,
-      enableResumeTailoring: false // Also disable the feature
+      enableResumeTailoring: false 
     }));
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -105,39 +145,45 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
   const isResumeTailorDisabled = !prefs.resume;
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-5xl mx-auto bg-white border border-gray-100 p-8 md:p-10 rounded-2xl shadow-xl animate-slide-up relative overflow-hidden">
+    <form onSubmit={handleSubmit} className="w-full max-w-5xl mx-auto bg-white border border-gray-100 p-6 md:p-10 rounded-2xl shadow-xl animate-slide-up relative overflow-hidden">
       
       <style>{`
         .thumb-input::-webkit-slider-thumb {
           pointer-events: auto;
-          width: 24px;
-          height: 24px;
+          width: 28px;
+          height: 28px;
           border-radius: 50%; 
           -webkit-appearance: none;
           cursor: pointer; 
-          background: #001F3F; /* Navy thumb */
-          border: 2px solid white;
-          box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+          background: #001F3F;
+          border: 3px solid white;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         }
 
-        /* Fix browser autofill styles */
         input:-webkit-autofill,
         input:-webkit-autofill:hover,
         input:-webkit-autofill:focus,
         input:-webkit-autofill:active {
-          -webkit-text-fill-color: #001F3F !important; /* text-navy-900 */
-          box-shadow: 0 0 0px 1000px #F9FAFB inset !important; /* bg-gray-50 */
+          -webkit-text-fill-color: #001F3F !important;
+          box-shadow: 0 0 0px 1000px #F9FAFB inset !important;
           -webkit-box-shadow: 0 0 0px 1000px #F9FAFB inset !important;
           transition: background-color 5000s ease-in-out 0s;
         }
+
+        /* Prevent zooming on focus in iOS */
+        @media screen and (max-width: 768px) {
+          input, select, textarea {
+            font-size: 16px !important;
+          }
+        }
       `}</style>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-12 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10 mb-10">
         
         {/* Left Column */}
         <div className="space-y-8">
           <div className="space-y-3">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
               <Briefcase size={14} className="text-teal-600" /> Desired Role
             </label>
             <input
@@ -151,23 +197,34 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
             />
           </div>
 
-           <div className="space-y-3">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+           <div className="space-y-3 relative">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
               <MapPin size={14} className="text-teal-600" /> Location
             </label>
-            <input
-              type="text"
-              name="location"
-              value={prefs.location}
-              onChange={handleChange}
-              placeholder="e.g. New York, London"
-              className="w-full bg-gray-50 border border-gray-200 text-lg text-navy-900 font-medium px-4 py-4 rounded-xl focus:outline-none focus:border-navy-500 focus:bg-white focus:ring-4 focus:ring-navy-50 transition-all placeholder:text-gray-400"
-              required
-            />
+            <div className="relative group">
+              <input
+                type="text"
+                name="location"
+                value={prefs.location}
+                onChange={handleChange}
+                placeholder="e.g. New York, London"
+                className="w-full bg-gray-50 border border-gray-200 text-lg text-navy-900 font-medium pl-4 pr-12 py-4 rounded-xl focus:outline-none focus:border-navy-500 focus:bg-white focus:ring-4 focus:ring-navy-50 transition-all placeholder:text-gray-400"
+                required
+              />
+              <button
+                type="button"
+                onClick={handleLocateMe}
+                disabled={isLocating}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-navy-400 hover:text-teal-600 transition-colors disabled:opacity-50"
+                title="Use Current Location"
+              >
+                <Navigation size={20} className={isLocating ? "animate-pulse" : ""} />
+              </button>
+            </div>
           </div>
 
           <div className="space-y-3">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                <Building2 size={14} className="text-teal-600" /> Key Skills / Keywords
             </label>
             <input
@@ -181,7 +238,7 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
           </div>
 
           <div className="space-y-3">
-             <label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                <Upload size={14} className="text-teal-600" /> Resume / CV (Optional)
             </label>
             <div 
@@ -207,7 +264,7 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
                       <FileText size={20} />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-navy-900 truncate max-w-[200px]">{prefs.resume.fileName}</p>
+                      <p className="text-sm font-bold text-navy-900 truncate max-w-[150px]">{prefs.resume.fileName}</p>
                       <p className="text-[10px] text-teal-600 uppercase tracking-wider font-bold">Ready to analyze</p>
                     </div>
                   </div>
@@ -225,7 +282,7 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
               ) : (
                 <div className="flex flex-col items-center justify-center py-2 text-center">
                   <span className="text-navy-600 group-hover:text-navy-800 transition-colors text-sm font-semibold">Click to upload PDF</span>
-                  <span className="text-slate-400 text-xs mt-1">AI parsing enhanced</span>
+                  <span className="text-slate-400 text-[10px] mt-1">AI parsing enhanced</span>
                 </div>
               )}
             </div>
@@ -236,7 +293,7 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
         <div className="space-y-8">
           
           <div className="space-y-3 relative" ref={dropdownRef}>
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Experience Level</label>
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Experience Level</label>
             <div 
               onClick={() => setIsExpDropdownOpen(!isExpDropdownOpen)}
               className={`
@@ -259,32 +316,32 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
                     setPrefs(prev => ({ ...prev, experienceLevel: level as any }));
                     setIsExpDropdownOpen(false);
                   }}
-                  className="px-4 py-3 hover:bg-gray-50 cursor-pointer flex items-center justify-between group transition-colors"
+                  className="px-4 py-4 hover:bg-gray-50 cursor-pointer flex items-center justify-between group transition-colors"
                 >
-                  <span className={`${prefs.experienceLevel === level ? 'text-navy-900 font-bold' : 'text-slate-600 group-hover:text-navy-700'}`}>
+                  <span className={`${prefs.experienceLevel === level ? 'text-navy-900 font-bold text-lg' : 'text-slate-600 text-lg group-hover:text-navy-700'}`}>
                     {level}
                   </span>
-                  {prefs.experienceLevel === level && <Check size={16} className="text-teal-500" />}
+                  {prefs.experienceLevel === level && <Check size={20} className="text-teal-500" />}
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="space-y-5 pt-2">
+          <div className="space-y-6 pt-2">
             <div className="flex justify-between items-end">
-               <label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                  <Wallet size={14} className="text-teal-600" /> Salary Range
                </label>
-               <span className="text-navy-900 font-display text-xl font-bold tracking-tight">
+               <span className="text-navy-900 font-display text-2xl font-bold tracking-tight">
                  ${prefs.salaryMin}k — ${prefs.salaryMax}k+
                </span>
             </div>
             
-            <div className="relative h-6 w-full mt-2 flex items-center">
-              <div className="absolute top-1/2 left-0 w-full h-1.5 bg-gray-200 rounded-full -translate-y-1/2"></div>
+            <div className="relative h-8 w-full mt-2 flex items-center">
+              <div className="absolute top-1/2 left-0 w-full h-2 bg-gray-200 rounded-full -translate-y-1/2"></div>
               
               <div 
-                className="absolute top-1/2 h-1.5 bg-navy-600 rounded-full -translate-y-1/2"
+                className="absolute top-1/2 h-2 bg-navy-600 rounded-full -translate-y-1/2"
                 style={{
                   left: `${(prefs.salaryMin / 300) * 100}%`,
                   right: `${100 - (prefs.salaryMax / 300) * 100}%`
@@ -310,20 +367,17 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
             </div>
           </div>
           
-           {/* PREMIUM FEATURES GROUP */}
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-             
-             {/* 1. Market Intelligence */}
+           <div className="grid grid-cols-2 gap-3 pt-2">
              <div 
               onClick={() => setPrefs(prev => ({...prev, enableIntelligence: !prev.enableIntelligence}))}
               className={`
-                group cursor-pointer border rounded-xl p-3 flex flex-col justify-between transition-all duration-300 relative overflow-hidden
+                group cursor-pointer border rounded-xl p-4 flex flex-col justify-between transition-all duration-300 relative overflow-hidden active:scale-95
                 ${prefs.enableIntelligence 
                   ? 'bg-navy-900 border-navy-900 shadow-lg ring-1 ring-teal-400/30' 
-                  : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-md'}
+                  : 'bg-white border-gray-200 hover:border-gray-300'}
               `}
             >
-              <div className="flex justify-between items-start mb-2">
+              <div className="flex justify-between items-start mb-3">
                 <div className={`
                     w-8 h-8 rounded-lg flex items-center justify-center transition-colors
                     ${prefs.enableIntelligence ? 'bg-teal-500 text-white' : 'bg-gray-100 text-gray-400'}
@@ -344,27 +398,23 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
                 <h4 className={`text-xs font-bold ${prefs.enableIntelligence ? 'text-white' : 'text-navy-900'}`}>
                   Market Intelligence
                 </h4>
-                <p className="text-[10px] mt-0.5 leading-tight" style={{ color: prefs.enableIntelligence ? '#9FB3C8' : '#94a3b8' }}>
-                  Forecasting & Economics
-                </p>
               </div>
             </div>
 
-            {/* 2. Resume Tailoring */}
             <div 
               onClick={() => !isResumeTailorDisabled && setPrefs(prev => ({...prev, enableResumeTailoring: !prev.enableResumeTailoring}))}
               title={isResumeTailorDisabled ? "Upload a resume to enable this feature" : "Enable AI Resume Tailoring"}
               className={`
-                group border rounded-xl p-3 flex flex-col justify-between transition-all duration-300 relative overflow-hidden
+                group border rounded-xl p-4 flex flex-col justify-between transition-all duration-300 relative overflow-hidden active:scale-95
                 ${isResumeTailorDisabled
                   ? 'bg-gray-50 border-gray-200 opacity-70 cursor-not-allowed'
                   : `cursor-pointer ${prefs.enableResumeTailoring 
                       ? 'bg-navy-900 border-navy-900 shadow-lg ring-1 ring-teal-400/30' 
-                      : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-md'}`
+                      : 'bg-white border-gray-200 hover:border-gray-300'}`
                 }
               `}
             >
-              <div className="flex justify-between items-start mb-2">
+              <div className="flex justify-between items-start mb-3">
                   <div className={`
                     w-8 h-8 rounded-lg flex items-center justify-center transition-colors
                     ${prefs.enableResumeTailoring && !isResumeTailorDisabled ? 'bg-teal-500 text-white' : 'bg-gray-100 text-gray-400'}
@@ -388,30 +438,25 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
                 <h4 className={`text-xs font-bold ${prefs.enableResumeTailoring && !isResumeTailorDisabled ? 'text-white' : 'text-navy-900'}`}>
                   AI Resume Tailor
                 </h4>
-                <p className="text-[10px] mt-0.5 leading-tight" style={{ color: prefs.enableResumeTailoring && !isResumeTailorDisabled ? '#9FB3C8' : '#94a3b8' }}>
-                  Auto-customize per Job
-                </p>
               </div>
             </div>
-
           </div>
-
         </div>
       </div>
 
       <div className="pt-8 border-t border-gray-100 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
         <div className="space-y-2">
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">Work Mode</label>
-          <div className="flex bg-gray-100 p-1 rounded-lg w-fit">
+          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 block">Work Mode</label>
+          <div className="flex bg-gray-100 p-1.5 rounded-xl w-full md:w-fit">
             {WORK_MODES.map((mode) => (
               <button
                 key={mode}
                 type="button"
                 onClick={() => setPrefs(prev => ({ ...prev, workMode: mode as any }))}
                 className={`
-                  px-5 py-2 rounded-md text-sm font-semibold transition-all duration-300
+                  flex-1 md:flex-none px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-300 active:scale-95
                   ${prefs.workMode === mode 
-                    ? 'bg-white text-navy-900 shadow-sm' 
+                    ? 'bg-white text-navy-900 shadow-md' 
                     : 'text-gray-500 hover:text-gray-700'}
                 `}
               >
@@ -422,7 +467,7 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
         </div>
 
         <div className="space-y-2">
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">Type</label>
+          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 block">Employment Type</label>
           <div className="flex flex-wrap gap-2">
             {EMPLOYMENT_TYPES.map((type) => (
                <button
@@ -430,7 +475,7 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
                  type="button"
                  onClick={() => setPrefs(prev => ({ ...prev, employmentType: type as any }))}
                  className={`
-                   px-4 py-2 rounded-full border text-xs font-bold transition-all
+                   px-5 py-2.5 rounded-full border text-xs font-bold transition-all active:scale-95
                    ${prefs.employmentType === type
                      ? 'bg-navy-50 border-navy-200 text-navy-800' 
                      : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'}
@@ -443,16 +488,15 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
         </div>
       </div>
 
-      <div className="mt-10 flex justify-end">
+      <div className="mt-12 flex justify-end">
         <button
           type="submit"
           disabled={isLoading}
           className={`
-            group relative flex items-center justify-center gap-3 px-10 py-5 bg-navy-900 text-white font-bold text-lg rounded-xl overflow-hidden transition-all
+            group relative flex items-center justify-center gap-3 px-12 py-5 bg-navy-900 text-white font-bold text-lg rounded-xl overflow-hidden transition-all
             disabled:opacity-50 disabled:cursor-not-allowed hover:bg-navy-800 shadow-xl shadow-navy-900/20 active:scale-95 w-full md:w-auto
           `}
         >
-          {/* Subtle gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-[shimmer_1s_infinite]"></div>
           
           {isLoading ? (
@@ -460,9 +504,8 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
                <span className="animate-spin text-xl">⟳</span> Initiating Agents...
             </span>
           ) : (
-            <span className="flex items-center gap-2 relative z-10">
-              {prefs.enableIntelligence || prefs.enableResumeTailoring ? 'Find Jobs + Enhance' : 'Find Matching Jobs'} 
-              <Search size={20} className="group-hover:translate-x-1 transition-transform" />
+            <span className="flex items-center gap-2 relative z-10 uppercase tracking-wider">
+              Find My Role <Search size={20} className="group-hover:translate-x-1 transition-transform" />
             </span>
           )}
         </button>

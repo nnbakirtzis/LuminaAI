@@ -1,5 +1,20 @@
 {
   "name": "Lumina Careers",
+  "short_name": "Lumina",
   "description": "A luxurious, AI-powered job finder that utilizes a multi-agent system to scrape, analyze, and rank job postings personalized to your career aspirations.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "theme_color": "#001F3F",
+  "background_color": "#F9FAFB",
+  "display": "standalone",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3064/3064155.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
 }
