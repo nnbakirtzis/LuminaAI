@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { Job, UserPreferences, MarketIntelligence } from "../types";
+import { Job, UserPreferences, MarketIntelligence, RealValueAnalysis } from "../types";
 
 // Initialize the Gemini client
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -100,6 +100,28 @@ const RESUMATOR_INSTRUCTION = `
   - **CRITICAL RULE:** Do NOT invent skills, experiences, or degrees that are not in the source resume. You must only rephrase, reorder, or highlight EXISTING information.
   - Adoption of Tone: Match the keywords and professional tone of the Job Description.
   - Format: Return clean Markdown. Use H1 for Name, H2 for Sections.
+`;
+
+const FINANCIAL_ANALYST_INSTRUCTION = `
+  You are the "Financial Analyst Agent", acting as a high-end financial lifestyle consultant.
+  - Your goal is to calculate the "Real Value" of a salary offer and explain it in human-friendly terms.
+  
+  MANDATORY PROCESS:
+  1. Use Google Search to find CURRENT 2024/2025 Cost of Living (COL) indices and Tax Rates for [User Location] vs [Job Location].
+  2. Formula: RealValue = OfferSalary * (UserLocation_COL_Index / JobLocation_COL_Index).
+  
+  VERDICT & EXPLANATION LOGIC (Be conversational, NOT robotic):
+  - IF Locations are identical (e.g., Austin vs Austin):
+      - Verdict: "Local Opportunity"
+      - Explanation: "Since this role is in your current city, this salary goes straight to your wallet with no relocation costs or cost-of-living shocks. It's a direct reflection of your local buying power."
+  - IF Real Value >> Offer:
+      - Verdict: "Lifestyle Upgrade"
+      - Explanation: "Your money goes much further here. Lower living costs mean this salary feels significantly higher than it looks on paper."
+  - IF Real Value << Offer:
+      - Verdict: "Cost of Living Squeeze"
+      - Explanation: "Be careful. Higher living costs in this city mean this salary might feel tighter than you expect."
+
+  OUTPUT: JSON object. Ensure 'verdict' is short (2-4 words) and 'details' in breakdown are friendly.
 `;
 
 // ------------------------------------------------------------------
@@ -247,6 +269,78 @@ export const generateTailoredResume = async (
   return response.text || "Failed to generate resume.";
 };
 
+export const calculateRealValue = async (
+  job: Job,
+  userLocation: string,
+  onLog: (agent: string, action: string) => void
+): Promise<RealValueAnalysis> => {
+  
+  // Use a temporary CostTracker for this isolated call
+  const costTracker = new CostTracker();
+  
+  onLog("Financial Analyst", `Initiating Real-Value audit: ${job.salary} in ${job.location} vs ${userLocation}...`);
+  
+  const response = await ai.models.generateContent({
+    model: MODEL_PRO, // Using Pro for complex reasoning + Search
+    contents: {
+      parts: [{ 
+        text: `
+          User Location (Current): ${userLocation}
+          Job Location (Target): ${job.location}
+          Offered Salary: ${job.salary}
+
+          Task: Perform a deep Purchasing Power Parity analysis.
+          1. Search for current 2024/2025 Cost of Living indices for both cities.
+          2. Search for State and City income tax rates for both.
+          3. Calculate the "Real Value" of the offered salary if the user lived in their current location.
+             (e.g., If SF is 50% more expensive than Austin, $150k in SF = $100k in Austin).
+          4. Return a verdict.
+        `
+      }]
+    },
+    config: {
+      systemInstruction: FINANCIAL_ANALYST_INSTRUCTION,
+      tools: [{ googleSearch: {} }], // Enable Search Grounding
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          originalSalary: { type: Type.STRING },
+          adjustedValue: { type: Type.STRING },
+          purchasingPowerScore: { type: Type.NUMBER, description: "100 is neutral. 110 is 10% gain. 90 is 10% loss." },
+          verdict: { type: Type.STRING },
+          breakdown: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                category: { type: Type.STRING },
+                diff: { type: Type.STRING },
+                details: { type: Type.STRING }
+              }
+            }
+          }
+        },
+        required: ["originalSalary", "adjustedValue", "purchasingPowerScore", "verdict", "breakdown"]
+      }
+    }
+  });
+
+  costTracker.track("Financial Analyst", MODEL_PRO, response.usageMetadata);
+  costTracker.logSummary(onLog);
+
+  // Extract Grounding Metadata (Sources)
+  const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks
+    ?.map((chunk: any) => ({
+      title: chunk.web?.title || "Source",
+      uri: chunk.web?.uri || ""
+    }))
+    .filter((s: any) => s.uri) || [];
+
+  const analysis = JSON.parse(response.text || "{}");
+  return { ...analysis, sources };
+};
+
 // ------------------------------------------------------------------
 // AGENT IMPLEMENTATIONS
 // ------------------------------------------------------------------
@@ -269,7 +363,7 @@ async function runHeadhunterAgent(
 
   const parts: any[] = [{ text: prompt }];
   if (prefs.resume) {
-    onLog("Headhunter Agent", "Cross-referencing Resume against Job Descriptions...");
+    onLog("Headhunter Agent", "Cross-referencing user's resume against job descriptions...");
     parts.push({ inlineData: { mimeType: prefs.resume.mimeType, data: prefs.resume.base64 } });
   }
 

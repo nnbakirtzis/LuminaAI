@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { UserPreferences, Job, AgentStatus, AgentLog } from '../types';
-import { findAndRankJobs, generateTailoredResume } from '../services/gemini';
+import { findAndRankJobs, generateTailoredResume, calculateRealValue } from '../services/gemini';
 import PreferenceForm from '../components/PreferenceForm';
 import JobCard from '../components/JobCard';
 import StatusVisualizer from '../components/StatusVisualizer';
@@ -20,6 +21,9 @@ const Home: React.FC = () => {
   const [resumeJob, setResumeJob] = useState<Job | null>(null);
   const [resumeContent, setResumeContent] = useState<string>('');
   const [isResumeLoading, setIsResumeLoading] = useState(false);
+
+  // Real Value State
+  const [loadingRealValueId, setLoadingRealValueId] = useState<string | null>(null);
 
   const addLog = (agentName: string, action: string) => {
     setLogs(prev => [...prev, {
@@ -80,6 +84,33 @@ const Home: React.FC = () => {
       addLog("Resumator Agent", `Error generating resume for ${job.id}.`);
     } finally {
       setIsResumeLoading(false);
+    }
+  };
+
+  const handleCalculateRealValue = async (job: Job) => {
+    if (!currentPrefs?.location) {
+      alert("No user location found. Please update your preferences.");
+      return;
+    }
+
+    setLoadingRealValueId(job.id);
+    addLog("Financial Analyst", `Calculating Real Value for ${job.id}...`);
+
+    try {
+      const analysis = await calculateRealValue(job, currentPrefs.location, addLog);
+      
+      // Update the specific job in the state with the new analysis
+      setJobs(prevJobs => prevJobs.map(j => 
+        j.id === job.id ? { ...j, realValueAnalysis: analysis } : j
+      ));
+      
+      addLog("Financial Analyst", `Analysis complete for ${job.id}.`);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to calculate real value. See logs for details.");
+      addLog("Financial Analyst", `Calculation failed for ${job.id}.`);
+    } finally {
+      setLoadingRealValueId(null);
     }
   };
 
@@ -160,6 +191,8 @@ const Home: React.FC = () => {
                     job={job} 
                     enableResumeTailoring={currentPrefs?.enableResumeTailoring || false}
                     onGenerateResume={handleGenerateResume}
+                    onCalculateRealValue={handleCalculateRealValue}
+                    isRealValueLoading={loadingRealValueId === job.id}
                   />
                 ))}
               </div>

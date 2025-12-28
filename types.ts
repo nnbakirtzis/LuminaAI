@@ -32,6 +32,19 @@ export interface MarketIntelligence {
   careerTrajectory: string;
 }
 
+export interface RealValueAnalysis {
+  originalSalary: string;
+  adjustedValue: string; // The "Real" value string (e.g. "$145,000")
+  purchasingPowerScore: number; // > 100 means gain, < 100 means loss
+  verdict: string; // e.g. "20% Gain in Purchasing Power"
+  breakdown: {
+    category: string; // e.g. "Housing", "Tax", "Groceries"
+    diff: string; // e.g. "+15% cheaper"
+    details: string; // e.g. "Rent in Austin is 15% lower than SF"
+  }[];
+  sources: { title: string; uri: string }[];
+}
+
 export interface Job {
   id: string;
   title: string;
@@ -46,6 +59,7 @@ export interface Job {
   requirements: string[];
   url: string;
   marketIntelligence?: MarketIntelligence; // Optional based on mode
+  realValueAnalysis?: RealValueAnalysis; // Optional, loaded on demand
 }
 
 export enum AgentStatus {

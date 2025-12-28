@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { UserPreferences } from '../types';
-import { Search, MapPin, Briefcase, ChevronDown, Check, Building2, Wallet, Upload, FileText, X, TrendingUp, Sparkles, Navigation } from 'lucide-react';
+import { Search, MapPin, Briefcase, ChevronDown, Check, Building2, Wallet, Upload, FileText, X, TrendingUp, Navigation } from 'lucide-react';
 
 interface PreferenceFormProps {
   onSubmit: (prefs: UserPreferences) => void;
@@ -143,7 +143,8 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
             fileName: file.name,
             mimeType: file.type,
             base64: base64Data
-          }
+          },
+          enableResumeTailoring: true // Automatically enable tailoring when file exists
         }));
       };
       reader.readAsDataURL(file);
@@ -154,12 +155,10 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
     setPrefs(prev => ({ 
       ...prev, 
       resume: undefined,
-      enableResumeTailoring: false 
+      enableResumeTailoring: false // Disable tailoring when file is removed
     }));
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
-
-  const isResumeTailorDisabled = !prefs.resume;
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-5xl mx-auto bg-white border border-gray-100 p-6 md:p-10 rounded-2xl shadow-xl animate-slide-up relative overflow-hidden">
@@ -299,7 +298,7 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
               ) : (
                 <div className="flex flex-col items-center justify-center py-2 text-center">
                   <span className="text-navy-600 group-hover:text-navy-800 transition-colors text-sm font-semibold">Click to upload PDF</span>
-                  <span className="text-slate-400 text-[10px] mt-1">AI parsing enhanced</span>
+                  <span className="text-slate-400 text-[10px] mt-1">Enables AI resume tailoring</span>
                 </div>
               )}
             </div>
@@ -384,7 +383,7 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
             </div>
           </div>
           
-           <div className="grid grid-cols-2 gap-3 pt-2">
+           <div className="pt-2">
              <div 
               onClick={() => setPrefs(prev => ({...prev, enableIntelligence: !prev.enableIntelligence}))}
               className={`
@@ -415,46 +414,9 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
                 <h4 className={`text-xs font-bold ${prefs.enableIntelligence ? 'text-white' : 'text-navy-900'}`}>
                   Market Intelligence
                 </h4>
-              </div>
-            </div>
-
-            <div 
-              onClick={() => !isResumeTailorDisabled && setPrefs(prev => ({...prev, enableResumeTailoring: !prev.enableResumeTailoring}))}
-              title={isResumeTailorDisabled ? "Upload a resume to enable this feature" : "Enable AI Resume Tailoring"}
-              className={`
-                group border rounded-xl p-4 flex flex-col justify-between transition-all duration-300 relative overflow-hidden active:scale-95
-                ${isResumeTailorDisabled
-                  ? 'bg-gray-50 border-gray-200 opacity-70 cursor-not-allowed'
-                  : `cursor-pointer ${prefs.enableResumeTailoring 
-                      ? 'bg-navy-900 border-navy-900 shadow-lg ring-1 ring-teal-400/30' 
-                      : 'bg-white border-gray-200 hover:border-gray-300'}`
-                }
-              `}
-            >
-              <div className="flex justify-between items-start mb-3">
-                  <div className={`
-                    w-8 h-8 rounded-lg flex items-center justify-center transition-colors
-                    ${prefs.enableResumeTailoring && !isResumeTailorDisabled ? 'bg-teal-500 text-white' : 'bg-gray-100 text-gray-400'}
-                  `}>
-                    <Sparkles size={16} />
-                  </div>
-                   <div className={`
-                    w-8 h-4 rounded-full p-0.5 transition-colors duration-300 relative
-                    ${isResumeTailorDisabled
-                      ? 'bg-gray-200'
-                      : `${prefs.enableResumeTailoring ? 'bg-teal-500' : 'bg-gray-200'}`
-                    }
-                  `}>
-                    <div className={`
-                      w-3 h-3 rounded-full bg-white shadow-sm transition-transform duration-300
-                      ${prefs.enableResumeTailoring && !isResumeTailorDisabled ? 'translate-x-4' : 'translate-x-0'}
-                    `}></div>
-                  </div>
-              </div>
-              <div>
-                <h4 className={`text-xs font-bold ${prefs.enableResumeTailoring && !isResumeTailorDisabled ? 'text-white' : 'text-navy-900'}`}>
-                  AI Resume Tailor
-                </h4>
+                <p className={`text-[10px] mt-1 ${prefs.enableIntelligence ? 'text-navy-200' : 'text-slate-400'}`}>
+                   Activates Economist, Futurist & Strategist agents.
+                </p>
               </div>
             </div>
           </div>
