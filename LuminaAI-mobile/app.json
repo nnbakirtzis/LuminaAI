@@ -1,0 +1,57 @@
+{
+  "expo": {
+    "name": "Lumina.AI",
+    "slug": "lumina-ai",
+    "version": "1.0.0",
+    "scheme": "lumina",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#001F3F"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.luminaai.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "We use your location to find jobs near you."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#001F3F"
+      },
+      "package": "com.luminaai.app",
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow Lumina.AI to access your location to find nearby jobs."
+        }
+      ],
+      [
+        "expo-document-picker",
+        {
+          "iCloudContainerEnvironment": "Production"
+        }
+      ]
+    ]
+  }
+}
