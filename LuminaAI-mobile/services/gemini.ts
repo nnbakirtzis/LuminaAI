@@ -11,12 +11,21 @@ const MODEL_FLASH = "gemini-3-flash-preview";
 const MODEL_PRO = "gemini-3-pro-preview";
 
 const PRICING = {
-    [MODEL_FLASH]: { input: 0.075, output: 0.30 },
-    [MODEL_PRO]: { input: 3.50, output: 10.50 }
+    [MODEL_FLASH]: { 
+        input: 0.50,  // $0.50 per 1M tokens (text/image/video)
+        output: 3.00  // $3.00 per 1M tokens
+    },
+    [MODEL_PRO]: { 
+        // Tiered pricing based on prompt size (prompts <= 200k vs > 200k tokens)
+        inputSmall: 2.00,   // prompts <= 200k tokens
+        inputLarge: 4.00,   // prompts > 200k tokens
+        outputSmall: 12.00, // prompts <= 200k tokens
+        outputLarge: 18.00  // prompts > 200k tokens
+    }
 };
 
 // ------------------------------------------------------------------
-// COST TRACKING SYSTEM
+// COST TRACKING SYSTEM (Last updated: January 6, 2026)
 // ------------------------------------------------------------------
 
 class CostTracker {
@@ -28,9 +37,22 @@ class CostTracker {
         const input = usage.promptTokenCount || 0;
         const output = usage.candidatesTokenCount || 0;
 
-        const rates = PRICING[model as keyof typeof PRICING] || PRICING[MODEL_FLASH];
+        let cost: number;
 
-        const cost = (input / 1_000_000 * rates.input) + (output / 1_000_000 * rates.output);
+        if (model === MODEL_FLASH) {
+            const rates = PRICING[MODEL_FLASH];
+            cost = (input / 1_000_000 * rates.input) + (output / 1_000_000 * rates.output);
+        } else if (model === MODEL_PRO) {
+            const rates = PRICING[MODEL_PRO];
+            // Use tiered pricing based on input token count
+            const inputRate = input <= 200_000 ? rates.inputSmall : rates.inputLarge;
+            const outputRate = input <= 200_000 ? rates.outputSmall : rates.outputLarge;
+            cost = (input / 1_000_000 * inputRate) + (output / 1_000_000 * outputRate);
+        } else {
+            // Fallback to Flash pricing for unknown models
+            const rates = PRICING[MODEL_FLASH];
+            cost = (input / 1_000_000 * rates.input) + (output / 1_000_000 * rates.output);
+        }
 
         this.costs.push({ agent, model, input, output, cost });
     }
