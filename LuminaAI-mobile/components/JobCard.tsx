@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     View,
     Text,
@@ -7,7 +7,6 @@ import {
     StyleSheet,
     ActivityIndicator,
     Modal,
-    Platform,
 } from "react-native";
 import {
     MapPin,
@@ -32,6 +31,19 @@ interface JobCardProps {
 export default function JobCard({ job, onAnalyzeRealValue }: JobCardProps) {
     const [showRealValue, setShowRealValue] = useState(false);
     const [showResume, setShowResume] = useState(false);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+    useEffect(() => {
+        if (job.realValueAnalysis) {
+            setIsAnalyzing(false);
+        }
+    }, [job.realValueAnalysis]);
+
+    useEffect(() => {
+        if (!showRealValue) {
+            setIsAnalyzing(false);
+        }
+    }, [showRealValue]);
 
     return (
         <View style={styles.card}>
@@ -125,16 +137,33 @@ export default function JobCard({ job, onAnalyzeRealValue }: JobCardProps) {
                         <ScrollView showsVerticalScrollIndicator={false}>
                             {!job.realValueAnalysis ? (
                                 <View style={styles.loadingState}>
-                                    <ActivityIndicator color={Colors.primary} size="large" />
-                                    <Text style={styles.loadingText}>
-                                        Agent Economist is calculating your leverage...
-                                    </Text>
-                                    <Pressable
-                                        onPress={onAnalyzeRealValue}
-                                        style={styles.analyzeBtn}
-                                    >
-                                        <Text style={styles.analyzeBtnText}>Initiate Analysis</Text>
-                                    </Pressable>
+                                    {isAnalyzing ? (
+                                        <>
+                                            <ActivityIndicator color={Colors.primary} size="large" />
+                                            <Text style={styles.loadingText}>
+                                                Agent Economist is calculating your leverage...
+                                            </Text>
+                                        </>
+                                    ) : (
+                                        <Text style={styles.loadingText}>
+                                            Run a real value analysis to compare this offer against your current location.
+                                        </Text>
+                                    )}
+                                    {!isAnalyzing && (
+                                        <Pressable
+                                            onPress={async () => {
+                                                setIsAnalyzing(true);
+                                                try {
+                                                    await onAnalyzeRealValue();
+                                                } finally {
+                                                    setIsAnalyzing(false);
+                                                }
+                                            }}
+                                            style={styles.analyzeBtn}
+                                        >
+                                            <Text style={styles.analyzeBtnText}>Initiate Analysis</Text>
+                                        </Pressable>
+                                    )}
                                 </View>
                             ) : (
                                 <View style={styles.analysisContent}>
@@ -176,13 +205,19 @@ export default function JobCard({ job, onAnalyzeRealValue }: JobCardProps) {
 
                                     <View style={styles.section}>
                                         <Text style={styles.sectionTitle}>Breakdown Analysis</Text>
-                                        {job.realValueAnalysis.breakdown.map((item, idx) => (
-                                            <View key={idx} style={styles.breakdownRow}>
-                                                <Text style={styles.breakdownLabel}>{item.category}</Text>
-                                                <Text style={styles.breakdownDiff}>{item.diff}</Text>
-                                                <Text style={styles.breakdownDetails}>{item.details}</Text>
-                                            </View>
-                                        ))}
+                                        {job.realValueAnalysis.breakdown?.length ? (
+                                            job.realValueAnalysis.breakdown.map((item, idx) => (
+                                                <View key={idx} style={styles.breakdownRow}>
+                                                    <Text style={styles.breakdownLabel}>{item.category}</Text>
+                                                    <Text style={styles.breakdownDiff}>{item.diff}</Text>
+                                                    <Text style={styles.breakdownDetails}>{item.details}</Text>
+                                                </View>
+                                            ))
+                                        ) : (
+                                            <Text style={styles.emptyBreakdown}>
+                                                No detailed breakdown available.
+                                            </Text>
+                                        )}
                                     </View>
                                 </View>
                             )}
@@ -465,6 +500,12 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
     breakdownDetails: {
+        fontSize: 13,
+        color: Colors.textLight,
+        lineHeight: 18,
+        fontWeight: "500",
+    },
+    emptyBreakdown: {
         fontSize: 13,
         color: Colors.textLight,
         lineHeight: 18,

@@ -7,6 +7,7 @@ import {
     ActivityIndicator,
     FlatList,
     Platform,
+    Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import PreferenceForm from "../../components/PreferenceForm";
@@ -16,22 +17,28 @@ import { findAndRankJobs, calculateRealValue } from "../../services/gemini";
 import { Job, UserPreferences, AgentLog } from "../../types";
 import { Sparkles, Briefcase } from "lucide-react-native";
 import Colors from "../../constants/Colors";
-import { useAuth } from "../../context/AuthContext";
+import { log, error as logError } from "../../utils/logger";
 
 export default function HomeScreen() {
-    const { user } = useAuth();
     const [loading, setLoading] = useState(false);
     const [jobs, setJobs] = useState<Job[]>([]);
     const [logs, setLogs] = useState<AgentLog[]>([]);
     const [hasSearched, setHasSearched] = useState(false);
+    const [currentPrefs, setCurrentPrefs] = useState<UserPreferences | null>(null);
 
     const handleSearch = async (prefs: UserPreferences) => {
         setLoading(true);
         setHasSearched(true);
         setJobs([]);
         setLogs([]);
+        setCurrentPrefs(prefs);
 
         try {
+            log("search:start", {
+                jobTitle: prefs.jobTitle,
+                location: prefs.location,
+                enableIntelligence: prefs.enableIntelligence,
+            });
             const results = await findAndRankJobs(prefs, (agent: string, action: string) => {
                 setLogs((prev) => [
                     ...prev,
@@ -44,7 +51,9 @@ export default function HomeScreen() {
                 ]);
             });
             setJobs(results);
+            log("search:complete", { count: results.length });
         } catch (error) {
+            logError("search:error", { message: (error as Error)?.message });
             console.error("Search failed:", error);
         } finally {
             setLoading(false);
@@ -53,13 +62,21 @@ export default function HomeScreen() {
 
     const handleRealValue = async (job: Job) => {
         try {
-            const analysis = await calculateRealValue(job, user?.email || "Remote", (agent, action) => {
+            if (!currentPrefs?.location) {
+                Alert.alert("Missing Location", "Please run a search with a location first.");
+                logError("real_value:missing_location", { jobId: job.id });
+                return;
+            }
+            log("real_value:start", { jobId: job.id, title: job.title });
+            const analysis = await calculateRealValue(job, currentPrefs.location, (agent, action) => {
                 console.log(`[${agent}] ${action}`);
             });
             setJobs((prev) =>
                 prev.map((j) => (j.id === job.id ? { ...j, realValueAnalysis: analysis } : j))
             );
+            log("real_value:complete", { jobId: job.id });
         } catch (error) {
+            logError("real_value:error", { jobId: job.id, message: (error as Error)?.message });
             console.error("Real value analysis failed:", error);
         }
     };
@@ -71,7 +88,7 @@ export default function HomeScreen() {
                     colors={[Colors.primary, Colors.dark]}
                     style={styles.loadingWrapper}
                 >
-                    <StatusVisualizer logs={logs} isPremium={true} />
+                    <StatusVisualizer logs={logs} isPremium={currentPrefs?.enableIntelligence || false} />
                 </LinearGradient>
             ) : (
                 <FlatList
@@ -112,10 +129,10 @@ export default function HomeScreen() {
                     }
                     renderItem={({ item }) => (
                         <View style={styles.cardWrapper}>
-                            <JobCard
-                                job={item}
-                                onAnalyzeRealValue={() => handleRealValue(item)}
-                            />
+                                <JobCard
+                                    job={item}
+                                    onAnalyzeRealValue={() => handleRealValue(item)}
+                                />
                         </View>
                     )}
                     contentContainerStyle={styles.listContent}

@@ -1,6 +1,7 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 import { Job, UserPreferences, MarketIntelligence, RealValueAnalysis } from "../types";
+import { log, error as logError } from "../utils/logger";
 
 // Initialize the Gemini client
 // Note: In production, use expo-constants to get API_KEY from app.config.js
@@ -162,14 +163,23 @@ export const findAndRankJobs = async (
 
     const costTracker = new CostTracker();
 
+    log("findAndRankJobs:start", {
+        jobTitle: prefs.jobTitle,
+        location: prefs.location,
+        enableIntelligence: prefs.enableIntelligence,
+        resumeAttached: Boolean(prefs.resume),
+    });
+
     onLog("Coordinator", "Initializing Swarm Sequence...");
 
     onLog("Headhunter Agent", `Scanning all networks for ${prefs.jobTitle} roles...`);
     const baseJobs = await runHeadhunterAgent(prefs, onLog, costTracker);
+    log("findAndRankJobs:baseJobs", { count: baseJobs.length });
     onLog("Headhunter Agent", `Identified ${baseJobs.length} potential candidates.`);
 
     if (!prefs.enableIntelligence) {
         costTracker.logSummary(onLog);
+        log("findAndRankJobs:intelligence:disabled");
         return baseJobs.map(j => ({ ...j, marketIntelligence: undefined }));
     }
 
@@ -212,11 +222,13 @@ export const findAndRankJobs = async (
 
         costTracker.logSummary(onLog);
 
+        log("findAndRankJobs:complete", { count: enrichedJobs.length });
         return enrichedJobs;
 
     } catch (error) {
         onLog("System", "Swarm Partial Failure. Reverting to base data.");
         console.error(error);
+        logError("findAndRankJobs:error", { message: (error as Error)?.message });
         costTracker.logSummary(onLog);
         return baseJobs.map(j => ({ ...j, marketIntelligence: undefined }));
     }
@@ -226,6 +238,8 @@ export const generateTailoredResume = async (
     job: Job,
     resume: { mimeType: string; base64: string }
 ): Promise<string> => {
+
+    log("generateTailoredResume:start", { jobId: job.id, title: job.title });
 
     const prompt = `
     TARGET JOB DESCRIPTION:
@@ -251,6 +265,7 @@ export const generateTailoredResume = async (
         }
     });
 
+    log("generateTailoredResume:complete", { jobId: job.id });
     return response.text || "Failed to generate resume.";
 };
 
@@ -261,6 +276,12 @@ export const calculateRealValue = async (
 ): Promise<RealValueAnalysis> => {
 
     const costTracker = new CostTracker();
+
+    log("calculateRealValue:start", {
+        jobId: job.id,
+        jobLocation: job.location,
+        userLocation,
+    });
 
     onLog("Financial Analyst", `Initiating Real-Value audit: ${job.salary} in ${job.location} vs ${userLocation}...`);
 
@@ -321,6 +342,7 @@ export const calculateRealValue = async (
         .filter((s: any) => s.uri) || [];
 
     const analysis = JSON.parse(response.text || "{}");
+    log("calculateRealValue:complete", { jobId: job.id });
     return { ...analysis, sources };
 };
 

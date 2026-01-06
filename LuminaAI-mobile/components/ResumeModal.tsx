@@ -11,6 +11,7 @@ import {
     Platform,
 } from "react-native";
 import { X, FileText, Sparkles, Copy, Check } from "lucide-react-native";
+import * as Clipboard from "expo-clipboard";
 import { Job } from "../types";
 import { generateTailoredResume } from "../services/gemini";
 import { useAuth } from "../context/AuthContext";
@@ -70,10 +71,17 @@ export default function ResumeModal({
         }
     };
 
-    const handleCopy = () => {
-        // In a real app we'd use Clipboard.setString
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+    const handleCopy = async () => {
+        if (!content) {
+            return;
+        }
+        try {
+            await Clipboard.setStringAsync(content);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (error) {
+            Alert.alert("Error", "Failed to copy to clipboard.");
+        }
     };
 
     return (

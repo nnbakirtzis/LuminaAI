@@ -1,5 +1,6 @@
 import * as SecureStore from 'expo-secure-store';
 import { User } from "../types";
+import { log, error as logError } from "../utils/logger";
 
 // ----------------------------------------------------------------------
 // AUTH SERVICE (Migrated to use expo-secure-store)
@@ -13,6 +14,7 @@ export const loginUser = async (email: string, password: string): Promise<User> 
     return new Promise((resolve, reject) => {
         setTimeout(async () => {
             if (password.length < 6) {
+                log("auth:login:invalid_password", { email });
                 reject(new Error("Password must be at least 6 characters"));
                 return;
             }
@@ -26,8 +28,10 @@ export const loginUser = async (email: string, password: string): Promise<User> 
 
             try {
                 await SecureStore.setItemAsync(STORAGE_KEY, JSON.stringify(mockUser));
+                log("auth:login:success", { email });
                 resolve(mockUser);
             } catch (error) {
+                logError("auth:login:storage_error", { email });
                 reject(new Error("Failed to save user session"));
             }
         }, DELAY_MS);
@@ -38,6 +42,7 @@ export const registerUser = async (name: string, email: string, password: string
     return new Promise((resolve, reject) => {
         setTimeout(async () => {
             if (!email.includes('@')) {
+                log("auth:register:invalid_email", { email });
                 reject(new Error("Invalid email address"));
                 return;
             }
@@ -51,8 +56,10 @@ export const registerUser = async (name: string, email: string, password: string
 
             try {
                 await SecureStore.setItemAsync(STORAGE_KEY, JSON.stringify(newUser));
+                log("auth:register:success", { email });
                 resolve(newUser);
             } catch (error) {
+                logError("auth:register:storage_error", { email });
                 reject(new Error("Failed to save user session"));
             }
         }, DELAY_MS);
@@ -64,8 +71,10 @@ export const logoutUser = async (): Promise<void> => {
         setTimeout(async () => {
             try {
                 await SecureStore.deleteItemAsync(STORAGE_KEY);
+                log("auth:logout:success");
                 resolve();
             } catch (error) {
+                logError("auth:logout:storage_error");
                 reject(new Error("Failed to clear session"));
             }
         }, 400);
@@ -75,9 +84,11 @@ export const logoutUser = async (): Promise<void> => {
 export const getCurrentUser = async (): Promise<User | null> => {
     try {
         const stored = await SecureStore.getItemAsync(STORAGE_KEY);
+        log("auth:current_user", { found: Boolean(stored) });
         if (stored) return JSON.parse(stored);
         return null;
     } catch (error) {
+        logError("auth:current_user:read_error");
         console.error("Failed to get current user", error);
         return null;
     }
