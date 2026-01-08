@@ -12,6 +12,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { ChevronDown, HelpCircle, MessageCircle } from "lucide-react-native";
 import Colors from "../../constants/Colors";
+import ScalePressable from "../../components/ScalePressable";
 
 if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -63,10 +64,11 @@ export default function FAQScreen() {
                 {FAQS.map((faq, index) => {
                     const isExpanded = expandedIndex === index;
                     return (
-                        <Pressable
+                        <ScalePressable
                             key={index}
                             onPress={() => toggleExpand(index)}
                             style={[styles.faqCard, isExpanded && styles.faqCardActive]}
+                            scaleTo={0.98}
                         >
                             <View style={styles.questionHeader}>
                                 <Text style={[styles.question, isExpanded && styles.questionActive]}>
@@ -90,7 +92,7 @@ export default function FAQScreen() {
                                     <Text style={styles.answer}>{faq.answer}</Text>
                                 </View>
                             )}
-                        </Pressable>
+                        </ScalePressable>
                     );
                 })}
 
@@ -102,9 +104,9 @@ export default function FAQScreen() {
                     <Text style={styles.contactText}>
                         Our human strategists are available for complex inquiries.
                     </Text>
-                    <Pressable style={styles.contactBtn}>
+                    <ScalePressable style={styles.contactBtn} scaleTo={0.96}>
                         <Text style={styles.contactBtnText}>Contact Strategy Team</Text>
-                    </Pressable>
+                    </ScalePressable>
                 </View>
             </View>
         </ScrollView>

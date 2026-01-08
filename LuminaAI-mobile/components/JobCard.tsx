@@ -22,6 +22,7 @@ import { Job } from "../types";
 import ResumeModal from "./ResumeModal";
 import Colors from "../constants/Colors";
 import { LinearGradient } from "expo-linear-gradient";
+import ScalePressable from "./ScalePressable";
 
 interface JobCardProps {
     job: Job;
@@ -94,21 +95,23 @@ export default function JobCard({ job, onAnalyzeRealValue }: JobCardProps) {
 
             {/* Actions */}
             <View style={styles.actions}>
-                <Pressable
+                <ScalePressable
                     onPress={() => setShowRealValue(true)}
                     style={[styles.actionBtn, styles.secondaryBtn]}
+                    scaleTo={0.96}
                 >
                     <Brain color={Colors.primary} size={18} />
                     <Text style={styles.secondaryBtnText}>Real Value</Text>
-                </Pressable>
+                </ScalePressable>
 
-                <Pressable
+                <ScalePressable
                     onPress={() => setShowResume(true)}
                     style={[styles.actionBtn, styles.primaryBtn]}
+                    scaleTo={0.96}
                 >
                     <Zap color={Colors.primary} size={18} />
                     <Text style={styles.primaryBtnText}>Tailor Resume</Text>
-                </Pressable>
+                </ScalePressable>
             </View>
 
             {/* Real Value Modal */}
@@ -126,12 +129,13 @@ export default function JobCard({ job, onAnalyzeRealValue }: JobCardProps) {
                                 <Brain color={Colors.primary} size={24} />
                                 <Text style={styles.sheetTitle}>Real Value Assessment</Text>
                             </View>
-                            <Pressable
+                            <ScalePressable
                                 onPress={() => setShowRealValue(false)}
                                 style={styles.closeBtn}
+                                scaleTo={0.9}
                             >
                                 <Text style={styles.closeBtnText}>Done</Text>
-                            </Pressable>
+                            </ScalePressable>
                         </View>
 
                         <ScrollView showsVerticalScrollIndicator={false}>
@@ -150,7 +154,7 @@ export default function JobCard({ job, onAnalyzeRealValue }: JobCardProps) {
                                         </Text>
                                     )}
                                     {!isAnalyzing && (
-                                        <Pressable
+                                        <ScalePressable
                                             onPress={async () => {
                                                 setIsAnalyzing(true);
                                                 try {
@@ -160,9 +164,10 @@ export default function JobCard({ job, onAnalyzeRealValue }: JobCardProps) {
                                                 }
                                             }}
                                             style={styles.analyzeBtn}
+                                            scaleTo={0.97}
                                         >
                                             <Text style={styles.analyzeBtnText}>Initiate Analysis</Text>
-                                        </Pressable>
+                                        </ScalePressable>
                                     )}
                                 </View>
                             ) : (

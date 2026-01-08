@@ -7,8 +7,9 @@ import {
     Pressable,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Check, Zap, Crown, ShieldCheck } from "lucide-react-native";
+import { Zap, Crown, ShieldCheck } from "lucide-react-native";
 import Colors from "../../constants/Colors";
+import ScalePressable from "../../components/ScalePressable";
 
 const PLANS = [
     {
@@ -102,11 +103,12 @@ export default function PricingScreen() {
                                 ))}
                             </View>
 
-                            <Pressable
+                            <ScalePressable
                                 style={[
                                     styles.cta,
                                     plan.popular ? styles.popularCta : styles.standardCta,
                                 ]}
+                                scaleTo={0.97}
                             >
                                 <Text
                                     style={[
@@ -116,7 +118,7 @@ export default function PricingScreen() {
                                 >
                                     {plan.cta}
                                 </Text>
-                            </Pressable>
+                            </ScalePressable>
                         </View>
                     );
                 })}

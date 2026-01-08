@@ -28,6 +28,7 @@ import {
 import { UserPreferences } from "../types";
 import Colors from "../constants/Colors";
 import { useAuth } from "../context/AuthContext";
+import ScalePressable from "./ScalePressable";
 
 interface PreferenceFormProps {
     onSubmit: (prefs: UserPreferences) => void;
@@ -47,7 +48,6 @@ export default function PreferenceForm({
         experienceLevel: "Mid",
         salaryMin: 80,
         salaryMax: 180,
-        industry: "Technology",
         workMode: "Remote",
         employmentType: "Full-time",
         keySkills: "",
@@ -171,7 +171,7 @@ export default function PreferenceForm({
                             setPrefs((prev) => ({ ...prev, location: text }))
                         }
                     />
-                    <Pressable
+                    <ScalePressable
                         onPress={handleLocateMe}
                         disabled={isLocating}
                         style={styles.locateBtn}
@@ -181,58 +181,45 @@ export default function PreferenceForm({
                         ) : (
                             <Navigation color={Colors.primary} size={20} />
                         )}
-                    </Pressable>
+                    </ScalePressable>
                 </View>
             </View>
 
-            <View style={styles.row}>
-                {/* Experience Level */}
-                <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
-                    <Text style={styles.label}>EXPERIENCE</Text>
-                    <Pressable
-                        onPress={() => setShowExpDropdown(!showExpDropdown)}
-                        style={styles.dropdown}
-                    >
-                        <Text style={styles.dropdownText}>{prefs.experienceLevel}</Text>
-                        <ChevronDown
-                            color={Colors.accent}
-                            size={18}
-                            style={{
-                                transform: [{ rotate: showExpDropdown ? "180deg" : "0deg" }],
-                            }}
-                        />
-                    </Pressable>
-                </View>
-
-                {/* Industry - Simpler for this UI */}
-                <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
-                    <Text style={styles.label}>INDUSTRY</Text>
-                    <TextInput
-                        style={styles.inputSmall}
-                        value={prefs.industry}
-                        onChangeText={(text) =>
-                            setPrefs((prev) => ({ ...prev, industry: text }))
-                        }
+            {/* Experience Level */}
+            <View style={styles.inputGroup}>
+                <Text style={styles.label}>EXPERIENCE</Text>
+                <ScalePressable
+                    onPress={() => setShowExpDropdown(!showExpDropdown)}
+                    style={styles.dropdown}
+                >
+                    <Text style={styles.dropdownText}>{prefs.experienceLevel}</Text>
+                    <ChevronDown
+                        color={Colors.accent}
+                        size={18}
+                        style={{
+                            transform: [{ rotate: showExpDropdown ? "180deg" : "0deg" }],
+                        }}
                     />
-                </View>
+                </ScalePressable>
             </View>
 
             {showExpDropdown && (
                 <View style={styles.dropdownMenu}>
                     {EXPERIENCE_LEVELS.map((level) => (
-                        <Pressable
+                        <ScalePressable
                             key={level}
                             onPress={() => {
                                 setPrefs((prev) => ({ ...prev, experienceLevel: level }));
                                 setShowExpDropdown(false);
                             }}
                             style={styles.dropdownItem}
+                            scaleTo={0.98}
                         >
                             <Text style={styles.dropdownItemText}>{level}</Text>
                             {prefs.experienceLevel === level && (
                                 <Check color={Colors.primary} size={18} />
                             )}
-                        </Pressable>
+                        </ScalePressable>
                     ))}
                 </View>
             )}
@@ -242,7 +229,7 @@ export default function PreferenceForm({
                 <View style={styles.salaryHeader}>
                     <Text style={styles.label}>SALARY RANGE (K)</Text>
                     <Text style={styles.salaryValue}>
-                        ${prefs.salaryMin}k — ${prefs.salaryMax}k+
+                        ${prefs.salaryMin}k — ${prefs.salaryMax}k{prefs.salaryMax === 500 ? "+" : ""}
                     </Text>
                 </View>
 
@@ -313,9 +300,10 @@ export default function PreferenceForm({
                     <Upload color={Colors.primary} size={14} />
                     <Text style={styles.label}>RESUME / CV</Text>
                 </View>
-                <Pressable
+                <ScalePressable
                     onPress={prefs.resume ? undefined : handlePickDocument}
                     style={[styles.uploadBox, prefs.resume && styles.uploadBoxActive]}
+                    scaleTo={0.98}
                 >
                     {prefs.resume ? (
                         <View style={styles.fileRow}>
@@ -328,9 +316,9 @@ export default function PreferenceForm({
                                 </Text>
                                 <Text style={styles.fileStatus}>READY FOR ANALYSIS</Text>
                             </View>
-                            <Pressable onPress={removeFile} style={styles.removeBtn}>
+                            <ScalePressable onPress={removeFile} style={styles.removeBtn}>
                                 <X color={Colors.error} size={18} />
-                            </Pressable>
+                            </ScalePressable>
                         </View>
                     ) : (
                         <View style={styles.uploadPlaceholder}>
@@ -338,11 +326,11 @@ export default function PreferenceForm({
                             <Text style={styles.uploadHint}>For personalized matching</Text>
                         </View>
                     )}
-                </Pressable>
+                </ScalePressable>
             </View>
 
             {/* Market Intelligence Toggle */}
-            <Pressable
+            <ScalePressable
                 onPress={() =>
                     setPrefs((prev) => ({
                         ...prev,
@@ -353,6 +341,7 @@ export default function PreferenceForm({
                     styles.toggleCard,
                     prefs.enableIntelligence && styles.toggleCardActive,
                 ]}
+                scaleTo={0.98}
             >
                 <View style={styles.toggleHeader}>
                     <View
@@ -391,13 +380,14 @@ export default function PreferenceForm({
                 >
                     Economist & Futurist agents will analyze salary trends & market growth.
                 </Text>
-            </Pressable>
+            </ScalePressable>
 
             {/* Submit Button */}
-            <Pressable
+            <ScalePressable
                 onPress={handleSubmit}
                 disabled={isLoading}
                 style={[styles.submitBtn, isLoading && styles.submitBtnDisabled]}
+                scaleTo={0.95}
             >
                 {isLoading ? (
                     <View style={styles.loadingRow}>
@@ -407,7 +397,7 @@ export default function PreferenceForm({
                 ) : (
                     <Text style={styles.submitText}>Deploy Agents</Text>
                 )}
-            </Pressable>
+            </ScalePressable>
         </View>
     );
 }

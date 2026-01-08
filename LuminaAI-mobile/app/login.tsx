@@ -16,6 +16,7 @@ import { useRouter } from "expo-router";
 import { Bot, Mail, Lock, User } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Colors from "../constants/Colors";
+import ScalePressable from "../components/ScalePressable";
 
 export default function LoginScreen() {
     const [isLogin, setIsLogin] = useState(true);
@@ -129,10 +130,11 @@ export default function LoginScreen() {
                             </View>
                         </View>
 
-                        <Pressable
+                        <ScalePressable
                             onPress={handleSubmit}
                             disabled={isLoading}
                             style={[styles.submitBtn, isLoading && styles.submitBtnDisabled]}
+                            scaleTo={0.96}
                         >
                             {isLoading ? (
                                 <ActivityIndicator color={Colors.primary} />
@@ -141,16 +143,16 @@ export default function LoginScreen() {
                                     {isLogin ? "Sign In" : "Create Account"}
                                 </Text>
                             )}
-                        </Pressable>
+                        </ScalePressable>
 
-                        <Pressable onPress={() => setIsLogin(!isLogin)} style={styles.toggleBtn}>
+                        <ScalePressable onPress={() => setIsLogin(!isLogin)} style={styles.toggleBtn}>
                             <Text style={styles.toggleText}>
                                 {isLogin ? "Don't have an account? " : "Already have an account? "}
                                 <Text style={styles.toggleAccent}>
                                     {isLogin ? "Sign Up" : "Sign In"}
                                 </Text>
                             </Text>
-                        </Pressable>
+                        </ScalePressable>
                     </View>
 
                     {/* Footer */}

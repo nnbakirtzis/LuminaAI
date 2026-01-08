@@ -5,7 +5,6 @@ export interface UserPreferences {
     experienceLevel: 'Entry' | 'Mid' | 'Senior' | 'Executive';
     salaryMin: number;
     salaryMax: number;
-    industry: string;
     workMode: 'Remote' | 'Hybrid' | 'On-site';
     employmentType: 'Full-time' | 'Contract' | 'Freelance';
     keySkills: string;
