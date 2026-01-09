@@ -7,6 +7,7 @@ import {
     StyleSheet,
     ActivityIndicator,
     Modal,
+    Alert,
 } from "react-native";
 import {
     MapPin,
@@ -17,7 +18,10 @@ import {
     Target,
     ShieldCheck,
     Zap,
+    Bookmark,
 } from "lucide-react-native";
+import { useAuth } from "../context/AuthContext";
+import { supabase } from "../services/supabase";
 import { Job } from "../types";
 import ResumeModal from "./ResumeModal";
 import Colors from "../constants/Colors";
@@ -33,6 +37,72 @@ export default function JobCard({ job, onAnalyzeRealValue }: JobCardProps) {
     const [showRealValue, setShowRealValue] = useState(false);
     const [showResume, setShowResume] = useState(false);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [isSaved, setIsSaved] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+
+    const { user } = useAuth();
+
+    useEffect(() => {
+        // Check if job is already saved
+        const checkSavedStatus = async () => {
+            if (!user) return;
+            const { data, error } = await supabase
+                .from("saved_jobs")
+                .select("id")
+                .eq("user_id", user.id)
+                .eq("job_id", job.id)
+                .single();
+
+            if (data && !error) {
+                setIsSaved(true);
+            }
+        };
+        checkSavedStatus();
+    }, [user, job.id]);
+
+    const toggleSave = async () => {
+        if (!user) {
+            Alert.alert("Authentication Required", "Please sign in to save jobs.");
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            if (isSaved) {
+                const { error } = await supabase
+                    .from("saved_jobs")
+                    .delete()
+                    .eq("user_id", user.id)
+                    .eq("job_id", job.id);
+                if (error) throw error;
+                setIsSaved(false);
+            } else {
+                const { error } = await supabase.from("saved_jobs").upsert({
+                    user_id: user.id,
+                    job_id: job.id,
+                    title: job.title,
+                    company: job.company,
+                    location: job.location,
+                    salary: job.salary,
+                    posted_date: job.postedDate,
+                    platform: job.platform,
+                    match_score: job.matchScore,
+                    description: job.description,
+                    requirements: job.requirements,
+                    url: job.url,
+                    market_intelligence: job.marketIntelligence,
+                    saved_at: new Date().toISOString(),
+                });
+                if (error) throw error;
+                setIsSaved(true);
+            }
+        } catch (error) {
+            console.error("Save job error:", error);
+            Alert.alert("Error", "Failed to update saved jobs.");
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     useEffect(() => {
         if (job.realValueAnalysis) {
@@ -61,7 +131,16 @@ export default function JobCard({ job, onAnalyzeRealValue }: JobCardProps) {
                         {job.matchScore || 0}% Strategic Match
                     </Text>
                 </View>
-                <Text style={styles.postDate}>{job.postedDate || "Recent"}</Text>
+                <View style={styles.headerRowRight}>
+                    <Text style={styles.postDate}>{job.postedDate || "Recent"}</Text>
+                    <ScalePressable onPress={toggleSave} disabled={isSaving} style={styles.bookmarkBtn}>
+                        <Bookmark
+                            size={20}
+                            color={isSaved ? Colors.secondary : Colors.accent}
+                            fill={isSaved ? Colors.secondary : "transparent"}
+                        />
+                    </ScalePressable>
+                </View>
             </View>
 
             <Text style={styles.title}>{job.title}</Text>
@@ -261,6 +340,14 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         alignItems: "center",
         marginBottom: 16,
+    },
+    headerRowRight: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 12,
+    },
+    bookmarkBtn: {
+        padding: 4,
     },
     matchBadge: {
         flexDirection: "row",

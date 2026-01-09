@@ -1,95 +1,85 @@
-import * as SecureStore from 'expo-secure-store';
+import { supabase } from "./supabase";
 import { User } from "../types";
 import { log, error as logError } from "../utils/logger";
 
 // ----------------------------------------------------------------------
-// AUTH SERVICE (Migrated to use expo-secure-store)
-// When ready for production, replace with Firebase or your auth provider.
+// AUTH SERVICE (Integrated with Supabase)
 // ----------------------------------------------------------------------
 
-const DELAY_MS = 800;
-const STORAGE_KEY = 'lumina_user';
-
 export const loginUser = async (email: string, password: string): Promise<User> => {
-    return new Promise((resolve, reject) => {
-        setTimeout(async () => {
-            if (password.length < 6) {
-                log("auth:login:invalid_password", { email });
-                reject(new Error("Password must be at least 6 characters"));
-                return;
-            }
-
-            const mockUser: User = {
-                id: "user_" + Math.random().toString(36).substr(2, 9),
-                email: email,
-                name: email.split('@')[0],
-                avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(email)}&background=0D9488&color=fff`
-            };
-
-            try {
-                await SecureStore.setItemAsync(STORAGE_KEY, JSON.stringify(mockUser));
-                log("auth:login:success", { email });
-                resolve(mockUser);
-            } catch (error) {
-                logError("auth:login:storage_error", { email });
-                reject(new Error("Failed to save user session"));
-            }
-        }, DELAY_MS);
+    const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
     });
+
+    if (error) {
+        logError("auth:login:error", { email, message: error.message });
+        throw error;
+    }
+
+    const authUser = data.user;
+    if (!authUser) throw new Error("No user data returned");
+
+    log("auth:login:success", { email });
+
+    return {
+        id: authUser.id,
+        email: authUser.email || email,
+        name: authUser.user_metadata?.name || email.split('@')[0],
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(authUser.user_metadata?.name || email)}&background=0D9488&color=fff`
+    };
 };
 
 export const registerUser = async (name: string, email: string, password: string): Promise<User> => {
-    return new Promise((resolve, reject) => {
-        setTimeout(async () => {
-            if (!email.includes('@')) {
-                log("auth:register:invalid_email", { email });
-                reject(new Error("Invalid email address"));
-                return;
-            }
-
-            const newUser: User = {
-                id: "user_" + Math.random().toString(36).substr(2, 9),
-                email,
-                name,
-                avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D9488&color=fff`
-            };
-
-            try {
-                await SecureStore.setItemAsync(STORAGE_KEY, JSON.stringify(newUser));
-                log("auth:register:success", { email });
-                resolve(newUser);
-            } catch (error) {
-                logError("auth:register:storage_error", { email });
-                reject(new Error("Failed to save user session"));
-            }
-        }, DELAY_MS);
+    const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+            data: {
+                name: name,
+            },
+        },
     });
+
+    if (error) {
+        logError("auth:register:error", { email, message: error.message });
+        throw error;
+    }
+
+    const authUser = data.user;
+    if (!authUser) throw new Error("Registration failed");
+
+    log("auth:register:success", { email });
+
+    return {
+        id: authUser.id,
+        email: authUser.email || email,
+        name: name,
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D9488&color=fff`
+    };
 };
 
 export const logoutUser = async (): Promise<void> => {
-    return new Promise((resolve, reject) => {
-        setTimeout(async () => {
-            try {
-                await SecureStore.deleteItemAsync(STORAGE_KEY);
-                log("auth:logout:success");
-                resolve();
-            } catch (error) {
-                logError("auth:logout:storage_error");
-                reject(new Error("Failed to clear session"));
-            }
-        }, 400);
-    });
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+        logError("auth:logout:error", { message: error.message });
+        throw error;
+    }
+    log("auth:logout:success");
 };
 
 export const getCurrentUser = async (): Promise<User | null> => {
-    try {
-        const stored = await SecureStore.getItemAsync(STORAGE_KEY);
-        log("auth:current_user", { found: Boolean(stored) });
-        if (stored) return JSON.parse(stored);
-        return null;
-    } catch (error) {
-        logError("auth:current_user:read_error");
-        console.error("Failed to get current user", error);
+    const { data: { session }, error } = await supabase.auth.getSession();
+
+    if (error || !session) {
         return null;
     }
+
+    const authUser = session.user;
+    return {
+        id: authUser.id,
+        email: authUser.email || "",
+        name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || "User",
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(authUser.user_metadata?.name || authUser.email || "U")}&background=0D9488&color=fff`
+    };
 };

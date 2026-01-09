@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     View,
     Text,
@@ -29,6 +29,7 @@ import { UserPreferences } from "../types";
 import Colors from "../constants/Colors";
 import { useAuth } from "../context/AuthContext";
 import ScalePressable from "./ScalePressable";
+import { supabase } from "../services/supabase";
 
 interface PreferenceFormProps {
     onSubmit: (prefs: UserPreferences) => void;
@@ -41,7 +42,7 @@ export default function PreferenceForm({
     onSubmit,
     isLoading,
 }: PreferenceFormProps) {
-    const { updateUser } = useAuth();
+    const { user, updateUser } = useAuth();
     const [prefs, setPrefs] = useState<UserPreferences>({
         jobTitle: "",
         location: "",
@@ -58,12 +59,79 @@ export default function PreferenceForm({
 
     const [isLocating, setIsLocating] = useState(false);
     const [showExpDropdown, setShowExpDropdown] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
-    const handleSubmit = () => {
+    // Load profile from Supabase on mount
+    useEffect(() => {
+        if (!user) return;
+
+        const loadProfile = async () => {
+            const { data, error } = await supabase
+                .from("profiles")
+                .select("*")
+                .eq("id", user.id)
+                .single();
+
+            if (data && !error) {
+                setPrefs((prev) => ({
+                    ...prev,
+                    jobTitle: data.job_title || prev.jobTitle,
+                    location: data.location || prev.location,
+                    experienceLevel: (data.experience_level as any) || prev.experienceLevel,
+                    salaryMin: data.salary_min || prev.salaryMin,
+                    salaryMax: data.salary_max || prev.salaryMax,
+                    workMode: (data.work_mode as any) || prev.workMode,
+                    employmentType: (data.employment_type as any) || prev.employmentType,
+                    key_skills: data.key_skills || prev.keySkills,
+                    enableIntelligence: data.enable_intelligence ?? prev.enableIntelligence,
+                    enableResumeTailoring: data.enable_resume_tailoring ?? prev.enableResumeTailoring,
+                    resume: data.resume_path ? {
+                        fileName: data.resume_path.split('/').pop() || "Resume",
+                        mimeType: "application/pdf", // Default, could be refined
+                        base64: "", // Will be fetched when needed
+                        storagePath: data.resume_path
+                    } : prev.resume,
+                }));
+            }
+        };
+
+        loadProfile();
+    }, [user]);
+
+    const saveProfile = async (updatedPrefs: UserPreferences) => {
+        if (!user) return;
+        setIsSaving(true);
+        try {
+            const { error } = await supabase.from("profiles").upsert({
+                id: user.id,
+                job_title: updatedPrefs.jobTitle,
+                location: updatedPrefs.location,
+                experience_level: updatedPrefs.experienceLevel,
+                salary_min: updatedPrefs.salaryMin,
+                salary_max: updatedPrefs.salaryMax,
+                work_mode: updatedPrefs.workMode,
+                employment_type: updatedPrefs.employmentType,
+                key_skills: updatedPrefs.keySkills,
+                enable_intelligence: updatedPrefs.enableIntelligence,
+                enable_resume_tailoring: updatedPrefs.enableResumeTailoring,
+                resume_path: updatedPrefs.resume?.storagePath,
+                updated_at: new Date().toISOString(),
+            });
+
+            if (error) throw error;
+        } catch (error) {
+            console.error("Failed to save profile:", error);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleSubmit = async () => {
         if (!prefs.jobTitle || !prefs.location) {
             Alert.alert("Missing Info", "Please enter a job title and location.");
             return;
         }
+        await saveProfile(prefs);
         onSubmit(prefs);
     };
 
@@ -94,6 +162,11 @@ export default function PreferenceForm({
     };
 
     const handlePickDocument = async () => {
+        if (!user) {
+            Alert.alert("Authentication Required", "Please sign in to upload a resume.");
+            return;
+        }
+
         try {
             const result = await DocumentPicker.getDocumentAsync({
                 type: ["application/pdf", "text/plain"],
@@ -102,7 +175,27 @@ export default function PreferenceForm({
 
             if (!result.canceled && result.assets[0]) {
                 const file = result.assets[0];
+                setIsSaving(true);
 
+                // 1. Upload to Supabase Storage (RLS Folder: {user_id}/{filename})
+                const storagePath = `${user.id}/${file.name}`;
+
+                const formData = new FormData();
+                formData.append('file', {
+                    uri: file.uri,
+                    name: file.name,
+                    type: file.mimeType || 'application/pdf',
+                } as any);
+
+                const { error: uploadError } = await supabase.storage
+                    .from('resumes')
+                    .upload(storagePath, formData, {
+                        upsert: true,
+                    });
+
+                if (uploadError) throw uploadError;
+
+                // 2. Read as base64 for immediate AI context
                 const base64 = await FileSystem.readAsStringAsync(file.uri, {
                     encoding: FileSystem.EncodingType.Base64,
                 });
@@ -111,6 +204,7 @@ export default function PreferenceForm({
                     fileName: file.name,
                     mimeType: file.mimeType || "application/pdf",
                     base64,
+                    storagePath: storagePath
                 };
 
                 setPrefs((prev) => ({
@@ -120,10 +214,20 @@ export default function PreferenceForm({
                 }));
 
                 updateUser({ resume: resumeData });
+
+                // 3. Save path to profile
+                await supabase.from("profiles").upsert({
+                    id: user.id,
+                    resume_path: storagePath,
+                    enable_resume_tailoring: true,
+                    updated_at: new Date().toISOString(),
+                });
             }
         } catch (error: any) {
-            console.error("Document Picker Error:", error);
-            Alert.alert("Error", `Failed to pick document: ${error.message || "Unknown error"}`);
+            console.error("Resume Upload Error:", error);
+            Alert.alert("Error", `Failed to upload resume: ${error.message || "Unknown error"}`);
+        } finally {
+            setIsSaving(false);
         }
     };
 

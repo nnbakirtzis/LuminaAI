@@ -12,6 +12,7 @@ export interface UserPreferences {
         base64: string;
         mimeType: string;
         fileName: string;
+        storagePath?: string;
     };
     enableIntelligence: boolean;
     enableResumeTailoring: boolean;
@@ -26,6 +27,7 @@ export interface User {
         base64: string;
         mimeType: string;
         fileName: string;
+        storagePath?: string;
     };
 }
 
