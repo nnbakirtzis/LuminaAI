@@ -2,6 +2,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Job, UserPreferences, MarketIntelligence, RealValueAnalysis } from "../types";
 import { log, error as logError } from "../utils/logger";
+import { ResumeManager } from "../utils/resumeManager";
 
 // Initialize the Gemini client
 // Note: In production, use expo-constants to get API_KEY from app.config.js
@@ -258,10 +259,19 @@ export const findAndRankJobs = async (
 
 export const generateTailoredResume = async (
     job: Job,
-    resume: { mimeType: string; base64: string }
+    resume: { mimeType: string; base64?: string; storagePath?: string }
 ): Promise<string> => {
 
     log("generateTailoredResume:start", { jobId: job.id, title: job.title });
+
+    let base64 = resume.base64;
+    if (!base64 && resume.storagePath) {
+        base64 = await ResumeManager.getResumeBase64(resume.storagePath);
+    }
+
+    if (!base64) {
+        throw new Error("Resume content missing");
+    }
 
     const prompt = `
     TARGET JOB DESCRIPTION:
@@ -279,7 +289,7 @@ export const generateTailoredResume = async (
         contents: {
             parts: [
                 { text: prompt },
-                { inlineData: { mimeType: resume.mimeType, data: resume.base64 } }
+                { inlineData: { mimeType: resume.mimeType, data: base64 } }
             ]
         },
         config: {
@@ -391,7 +401,15 @@ async function runHeadhunterAgent(
     const parts: any[] = [{ text: prompt }];
     if (prefs.resume) {
         onLog("Headhunter Agent", "Cross-referencing user's resume against job descriptions...");
-        parts.push({ inlineData: { mimeType: prefs.resume.mimeType, data: prefs.resume.base64 } });
+        
+        let base64 = prefs.resume.base64;
+        if (!base64 && prefs.resume.storagePath) {
+            base64 = await ResumeManager.getResumeBase64(prefs.resume.storagePath);
+        }
+
+        if (base64) {
+            parts.push({ inlineData: { mimeType: prefs.resume.mimeType, data: base64 } });
+        }
     }
 
     const response = await ai.models.generateContent({

@@ -9,7 +9,7 @@ export interface UserPreferences {
     employmentType: 'Full-time' | 'Contract' | 'Freelance';
     keySkills: string;
     resume?: {
-        base64: string;
+        base64?: string;
         mimeType: string;
         fileName: string;
         storagePath?: string;
@@ -24,7 +24,7 @@ export interface User {
     email: string;
     avatar?: string;
     resume?: {
-        base64: string;
+        base64?: string;
         mimeType: string;
         fileName: string;
         storagePath?: string;

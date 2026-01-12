@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import * as Location from "expo-location";
 import * as DocumentPicker from "expo-document-picker";
-import * as FileSystem from "expo-file-system/legacy";
+import * as FileSystem from "expo-file-system";
 import { Slider } from "@miblanchard/react-native-slider";
 import {
     Briefcase,
@@ -30,6 +30,7 @@ import Colors from "../constants/Colors";
 import { useAuth } from "../context/AuthContext";
 import ScalePressable from "./ScalePressable";
 import { supabase } from "../services/supabase";
+import { ResumeManager } from "../utils/resumeManager";
 
 interface PreferenceFormProps {
     onSubmit: (prefs: UserPreferences) => void;
@@ -88,7 +89,6 @@ export default function PreferenceForm({
                     resume: data.resume_path ? {
                         fileName: data.resume_path.split('/').pop() || "Resume",
                         mimeType: "application/pdf", // Default, could be refined
-                        base64: "", // Will be fetched when needed
                         storagePath: data.resume_path
                     } : prev.resume,
                 }));
@@ -195,15 +195,15 @@ export default function PreferenceForm({
 
                 if (uploadError) throw uploadError;
 
-                // 2. Read as base64 for immediate AI context
+                // 2. Cache locally and remove base64 from memory
                 const base64 = await FileSystem.readAsStringAsync(file.uri, {
                     encoding: FileSystem.EncodingType.Base64,
                 });
+                await ResumeManager.cacheResume(storagePath, base64);
 
                 const resumeData = {
                     fileName: file.name,
                     mimeType: file.mimeType || "application/pdf",
-                    base64,
                     storagePath: storagePath
                 };
 

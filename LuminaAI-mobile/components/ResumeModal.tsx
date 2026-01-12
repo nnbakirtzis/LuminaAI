@@ -61,6 +61,7 @@ export default function ResumeModal({
             const tailored = await generateTailoredResume(dummyJob, {
                 mimeType: user!.resume!.mimeType,
                 base64: user!.resume!.base64,
+                storagePath: user!.resume!.storagePath,
             });
             setContent(tailored);
         } catch (error) {
