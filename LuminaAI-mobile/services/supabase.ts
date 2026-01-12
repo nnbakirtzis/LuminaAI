@@ -1,16 +1,36 @@
 import "react-native-url-polyfill/auto";
 import * as SecureStore from "expo-secure-store";
 import { createClient } from "@supabase/supabase-js";
+import { Platform } from "react-native";
 
-// Custom storage adapter for Supabase Auth to use Expo SecureStore
+// Custom storage adapter for Supabase Auth to use Expo SecureStore on native
+// and localStorage on web
 const ExpoSecureStoreAdapter = {
     getItem: (key: string) => {
+        if (Platform.OS === 'web') {
+            if (typeof window !== 'undefined') {
+                return localStorage.getItem(key);
+            }
+            return null;
+        }
         return SecureStore.getItemAsync(key);
     },
     setItem: (key: string, value: string) => {
+        if (Platform.OS === 'web') {
+            if (typeof window !== 'undefined') {
+                localStorage.setItem(key, value);
+            }
+            return;
+        }
         SecureStore.setItemAsync(key, value);
     },
     removeItem: (key: string) => {
+        if (Platform.OS === 'web') {
+            if (typeof window !== 'undefined') {
+                localStorage.removeItem(key);
+            }
+            return;
+        }
         SecureStore.deleteItemAsync(key);
     },
 };

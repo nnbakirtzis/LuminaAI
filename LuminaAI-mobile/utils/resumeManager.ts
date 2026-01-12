@@ -1,17 +1,18 @@
-import * as FileSystem from "expo-file-system";
+import { File, Paths } from "expo-file-system";
+import * as LegacyFileSystem from "expo-file-system/legacy";
 import { supabase } from "../services/supabase";
 import { log, error as logError } from "./logger";
 
-const RESUME_CACHE_DIR = `${FileSystem.documentDirectory}resumes/`;
+const RESUME_CACHE_DIR = `${Paths.document.uri}resumes/`;
 
 /**
  * Ensures the resume cache directory exists.
  */
 async function ensureDirExists() {
-    const dirInfo = await FileSystem.getInfoAsync(RESUME_CACHE_DIR);
+    const dirInfo = await LegacyFileSystem.getInfoAsync(RESUME_CACHE_DIR);
     if (!dirInfo.exists) {
         log("ResumeManager", "Creating resume cache directory...");
-        await FileSystem.makeDirectoryAsync(RESUME_CACHE_DIR, { intermediates: true });
+        await LegacyFileSystem.makeDirectoryAsync(RESUME_CACHE_DIR, { intermediates: true });
     }
 }
 
@@ -30,9 +31,8 @@ export const ResumeManager = {
     async cacheResume(storagePath: string, base64: string): Promise<string> {
         await ensureDirExists();
         const localUri = getLocalUri(storagePath);
-        await FileSystem.writeAsStringAsync(localUri, base64, {
-            encoding: FileSystem.EncodingType.Base64,
-        });
+        const file = new File(localUri);
+        await file.write(base64);
         log("ResumeManager", `Cached resume locally: ${localUri}`);
         return localUri;
     },
@@ -43,13 +43,12 @@ export const ResumeManager = {
      */
     async getResumeBase64(storagePath: string): Promise<string> {
         const localUri = getLocalUri(storagePath);
-        const fileInfo = await FileSystem.getInfoAsync(localUri);
+        const fileInfo = await LegacyFileSystem.getInfoAsync(localUri);
 
         if (fileInfo.exists) {
             log("ResumeManager", "Serving resume from local cache.");
-            return await FileSystem.readAsStringAsync(localUri, {
-                encoding: FileSystem.EncodingType.Base64,
-            });
+            const file = new File(localUri);
+            return await file.base64();
         }
 
         log("ResumeManager", `Cache miss for ${storagePath}. Downloading from Supabase...`);
@@ -85,7 +84,7 @@ export const ResumeManager = {
      */
     async isCached(storagePath: string): Promise<boolean> {
         const localUri = getLocalUri(storagePath);
-        const fileInfo = await FileSystem.getInfoAsync(localUri);
+        const fileInfo = await LegacyFileSystem.getInfoAsync(localUri);
         return fileInfo.exists;
     },
 
@@ -93,9 +92,9 @@ export const ResumeManager = {
      * Clears all cached resumes.
      */
     async clearCache() {
-        const dirInfo = await FileSystem.getInfoAsync(RESUME_CACHE_DIR);
+        const dirInfo = await LegacyFileSystem.getInfoAsync(RESUME_CACHE_DIR);
         if (dirInfo.exists) {
-            await FileSystem.deleteAsync(RESUME_CACHE_DIR, { idlingResource: true });
+            await LegacyFileSystem.deleteAsync(RESUME_CACHE_DIR, { idlingResource: true });
             log("ResumeManager", "Cleared resume cache.");
         }
     }

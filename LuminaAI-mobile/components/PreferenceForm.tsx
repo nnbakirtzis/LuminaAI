@@ -12,7 +12,8 @@ import {
 } from "react-native";
 import * as Location from "expo-location";
 import * as DocumentPicker from "expo-document-picker";
-import * as FileSystem from "expo-file-system";
+import { File, Paths } from "expo-file-system";
+import * as LegacyFileSystem from "expo-file-system/legacy";
 import { Slider } from "@miblanchard/react-native-slider";
 import {
     Briefcase,
@@ -174,17 +175,17 @@ export default function PreferenceForm({
             });
 
             if (!result.canceled && result.assets[0]) {
-                const file = result.assets[0];
+                const fileAsset = result.assets[0];
                 setIsSaving(true);
 
                 // 1. Upload to Supabase Storage (RLS Folder: {user_id}/{filename})
-                const storagePath = `${user.id}/${file.name}`;
+                const storagePath = `${user.id}/${fileAsset.name}`;
 
                 const formData = new FormData();
                 formData.append('file', {
-                    uri: file.uri,
-                    name: file.name,
-                    type: file.mimeType || 'application/pdf',
+                    uri: fileAsset.uri,
+                    name: fileAsset.name,
+                    type: fileAsset.mimeType || 'application/pdf',
                 } as any);
 
                 const { error: uploadError } = await supabase.storage
@@ -196,14 +197,13 @@ export default function PreferenceForm({
                 if (uploadError) throw uploadError;
 
                 // 2. Cache locally and remove base64 from memory
-                const base64 = await FileSystem.readAsStringAsync(file.uri, {
-                    encoding: FileSystem.EncodingType.Base64,
-                });
+                const fileObj = new File(fileAsset.uri);
+                const base64 = await fileObj.base64();
                 await ResumeManager.cacheResume(storagePath, base64);
 
                 const resumeData = {
-                    fileName: file.name,
-                    mimeType: file.mimeType || "application/pdf",
+                    fileName: fileAsset.name,
+                    mimeType: fileAsset.mimeType || "application/pdf",
                     storagePath: storagePath
                 };
 
