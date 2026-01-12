@@ -68,6 +68,19 @@ export const logoutUser = async (): Promise<void> => {
     log("auth:logout:success");
 };
 
+export const updateUserProfile = async (updates: { name?: string }): Promise<void> => {
+    const { error } = await supabase.auth.updateUser({
+        data: { name: updates.name }
+    });
+
+    if (error) {
+        logError("auth:update:error", { message: error.message });
+        throw error;
+    }
+
+    log("auth:update:success");
+};
+
 export const getCurrentUser = async (): Promise<User | null> => {
     const { data: { session }, error } = await supabase.auth.getSession();
 

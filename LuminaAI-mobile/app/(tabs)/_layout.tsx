@@ -1,85 +1,115 @@
 import { Tabs } from "expo-router";
-import { View, Text, StyleSheet, Platform } from "react-native";
-import { Home, DollarSign, Info, HelpCircle, User } from "lucide-react-native";
+import { View, Text, StyleSheet, Platform, Pressable } from "react-native";
+import { Home, DollarSign, Info, HelpCircle, User, UserCircle } from "lucide-react-native";
 import { useAuth } from "../../context/AuthContext";
 import Colors from "../../constants/Colors";
+import { useState } from "react";
+import ProfileMenu from "../../components/ProfileMenu";
+import ScalePressable from "../../components/ScalePressable";
 
 export default function TabLayout() {
     const { user, logout } = useAuth();
+    const [menuVisible, setMenuVisible] = useState(false);
 
     return (
-        <Tabs
-            screenOptions={{
-                headerShown: true,
-                headerStyle: styles.header,
-                headerTintColor: Colors.primary,
-                headerTitleStyle: styles.headerTitle,
-                tabBarStyle: styles.tabBar,
-                tabBarActiveTintColor: Colors.primary,
-                tabBarInactiveTintColor: Colors.textLight,
-                tabBarLabelStyle: styles.tabBarLabel,
-                tabBarItemStyle: styles.tabBarItem,
-            }}
-        >
-            <Tabs.Screen
-                name="index"
-                options={{
-                    title: "Search",
-                    headerTitle: () => (
-                        <View style={styles.logoContainer}>
-                            <Text style={styles.logoText}>
-                                Lumina<Text style={styles.logoAccent}>.AI</Text>
-                            </Text>
-                        </View>
-                    ),
-                    headerRight: () =>
-                        user ? (
-                            <View style={styles.userBadge}>
-                                <User color={Colors.primary} size={16} />
-                                <Text style={styles.userName}>{user.name.split(" ")[0]}</Text>
+        <>
+            <Tabs
+                screenOptions={{
+                    headerShown: true,
+                    headerStyle: styles.header,
+                    headerTintColor: Colors.primary,
+                    headerTitleStyle: styles.headerTitle,
+                    tabBarStyle: styles.tabBar,
+                    tabBarActiveTintColor: Colors.primary,
+                    tabBarInactiveTintColor: Colors.textLight,
+                    tabBarLabelStyle: styles.tabBarLabel,
+                    tabBarItemStyle: styles.tabBarItem,
+                }}
+            >
+                <Tabs.Screen
+                    name="index"
+                    options={{
+                        title: "Search",
+                        headerTitle: () => (
+                            <View style={styles.logoContainer}>
+                                <Text style={styles.logoText}>
+                                    Lumina<Text style={styles.logoAccent}>.AI</Text>
+                                </Text>
                             </View>
-                        ) : null,
-                    tabBarIcon: ({ color, focused }) => (
-                        <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
-                            <Home color={color} size={22} />
-                        </View>
-                    ),
-                }}
+                        ),
+                        headerRight: () =>
+                            user ? (
+                                <ScalePressable 
+                                    onPress={() => setMenuVisible(true)}
+                                    style={styles.userBadge}
+                                >
+                                    <User color={Colors.primary} size={16} />
+                                    <Text style={styles.userName}>{user.name.split(" ")[0]}</Text>
+                                </ScalePressable>
+                            ) : null,
+                        tabBarIcon: ({ color, focused }) => (
+                            <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
+                                <Home color={color} size={22} />
+                            </View>
+                        ),
+                    }}
+                />
+                <Tabs.Screen
+                    name="pricing"
+                    options={{
+                        title: "Pricing",
+                        tabBarIcon: ({ color, focused }) => (
+                            <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
+                                <DollarSign color={color} size={22} />
+                            </View>
+                        ),
+                    }}
+                />
+                <Tabs.Screen
+                    name="about"
+                    options={{
+                        title: "Mission",
+                        tabBarIcon: ({ color, focused }) => (
+                            <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
+                                <Info color={color} size={22} />
+                            </View>
+                        ),
+                    }}
+                />
+                <Tabs.Screen
+                    name="faq"
+                    options={{
+                        title: "FAQ",
+                        tabBarIcon: ({ color, focused }) => (
+                            <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
+                                <HelpCircle color={color} size={22} />
+                            </View>
+                        ),
+                    }}
+                />
+                <Tabs.Screen
+                    name="profile"
+                    options={{
+                        title: "Profile",
+                        href: null, // Hide from tab bar
+                        headerTitle: "Account Settings",
+                    }}
+                />
+                <Tabs.Screen
+                    name="security"
+                    options={{
+                        title: "Security",
+                        href: null, // Hide from tab bar
+                        headerTitle: "Security Settings",
+                    }}
+                />
+            </Tabs>
+
+            <ProfileMenu 
+                visible={menuVisible} 
+                onClose={() => setMenuVisible(false)} 
             />
-            <Tabs.Screen
-                name="pricing"
-                options={{
-                    title: "Pricing",
-                    tabBarIcon: ({ color, focused }) => (
-                        <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
-                            <DollarSign color={color} size={22} />
-                        </View>
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="about"
-                options={{
-                    title: "Mission",
-                    tabBarIcon: ({ color, focused }) => (
-                        <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
-                            <Info color={color} size={22} />
-                        </View>
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="faq"
-                options={{
-                    title: "FAQ",
-                    tabBarIcon: ({ color, focused }) => (
-                        <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
-                            <HelpCircle color={color} size={22} />
-                        </View>
-                    ),
-                }}
-            />
-        </Tabs>
+        </>
     );
 }
 

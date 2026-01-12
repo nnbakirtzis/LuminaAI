@@ -70,7 +70,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     const updateUser = (userData: Partial<User>) => {
-        setUser(prev => prev ? { ...prev, ...userData } : null);
+        setUser(prev => {
+            if (!prev) return null;
+            const updated = { ...prev, ...userData };
+            // Regenerate avatar if name changed and it's a derived avatar
+            if (userData.name && (!prev.avatar || prev.avatar.includes("ui-avatars.com"))) {
+                updated.avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}&background=0D9488&color=fff`;
+            }
+            return updated;
+        });
     };
 
     return (
