@@ -136,8 +136,8 @@ export default function JobCard({ job, onAnalyzeRealValue }: JobCardProps) {
                     <ScalePressable onPress={toggleSave} disabled={isSaving} style={styles.bookmarkBtn}>
                         <Bookmark
                             size={20}
-                            color={isSaved ? Colors.secondary : Colors.accent}
-                            fill={isSaved ? Colors.secondary : "transparent"}
+                            color={isSaved ? Colors.primary : Colors.textLight}
+                            fill={isSaved ? Colors.primary : "transparent"}
                         />
                     </ScalePressable>
                 </View>
@@ -324,16 +324,16 @@ export default function JobCard({ job, onAnalyzeRealValue }: JobCardProps) {
 
 const styles = StyleSheet.create({
     card: {
-        backgroundColor: Colors.light,
+        backgroundColor: Colors.surface,
         borderRadius: 24,
         padding: 24,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.05,
+        shadowOpacity: 0.3,
         shadowRadius: 12,
         elevation: 3,
         borderWidth: 1,
-        borderColor: "#F1F5F9",
+        borderColor: "rgba(179, 143, 111, 0.1)",
     },
     headerRow: {
         flexDirection: "row",
@@ -359,26 +359,26 @@ const styles = StyleSheet.create({
     },
     matchText: {
         fontSize: 12,
-        fontWeight: "800",
+        fontFamily: "PTSerif_700Bold",
         textTransform: "uppercase",
         letterSpacing: 0.5,
     },
     postDate: {
         fontSize: 12,
         color: Colors.textLight,
-        fontWeight: "600",
+        fontFamily: "PTSerif_400Regular",
     },
     title: {
         fontSize: 22,
-        fontWeight: "900",
-        color: Colors.primary,
+        fontFamily: "PTSerif_700Bold",
+        color: Colors.text,
         marginBottom: 4,
         letterSpacing: -0.5,
     },
     company: {
         fontSize: 16,
-        color: Colors.accent,
-        fontWeight: "700",
+        color: Colors.primary,
+        fontFamily: "PTSerif_700Bold",
         marginBottom: 20,
     },
     metaRow: {
@@ -395,21 +395,23 @@ const styles = StyleSheet.create({
     metaText: {
         fontSize: 14,
         color: Colors.textLight,
-        fontWeight: "600",
+        fontFamily: "PTSerif_400Regular",
     },
     intelligenceBar: {
         flexDirection: "row",
         alignItems: "center",
         gap: 8,
-        backgroundColor: "rgba(5, 150, 105, 0.08)",
+        backgroundColor: "rgba(179, 143, 111, 0.08)",
         padding: 12,
         borderRadius: 12,
         marginBottom: 24,
+        borderWidth: 1,
+        borderColor: "rgba(179, 143, 111, 0.1)",
     },
     intelligenceText: {
         fontSize: 13,
-        color: Colors.success,
-        fontWeight: "700",
+        color: Colors.primary,
+        fontFamily: "PTSerif_700Bold",
     },
     actions: {
         flexDirection: "row",
@@ -421,44 +423,47 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         gap: 8,
-        paddingVertical: 14,
+        paddingVertical: 16,
+        paddingHorizontal: 12,
         borderRadius: 14,
     },
     primaryBtn: {
-        backgroundColor: Colors.secondary,
+        backgroundColor: Colors.primary,
     },
     primaryBtnText: {
-        color: Colors.primary,
-        fontWeight: "800",
+        color: Colors.secondary,
+        fontFamily: "PTSerif_700Bold",
         fontSize: 14,
     },
     secondaryBtn: {
-        backgroundColor: "#F1F5F9",
+        backgroundColor: "rgba(179, 143, 111, 0.1)",
         borderWidth: 1,
-        borderColor: "#E2E8F0",
+        borderColor: "rgba(179, 143, 111, 0.2)",
     },
     secondaryBtnText: {
         color: Colors.primary,
-        fontWeight: "700",
+        fontFamily: "PTSerif_700Bold",
         fontSize: 14,
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: "rgba(33, 36, 61, 0.6)",
+        backgroundColor: "rgba(0, 0, 0, 0.8)",
         justifyContent: "flex-end",
     },
     bottomSheet: {
-        backgroundColor: Colors.light,
+        backgroundColor: Colors.secondary,
         borderTopLeftRadius: 32,
         borderTopRightRadius: 32,
         height: "85%",
         padding: 24,
         paddingTop: 12,
+        borderTopWidth: 1,
+        borderTopColor: "rgba(179, 143, 111, 0.2)",
     },
     sheetHandle: {
         width: 40,
         height: 4,
-        backgroundColor: "#E2E8F0",
+        backgroundColor: "rgba(179, 143, 111, 0.2)",
         borderRadius: 2,
         alignSelf: "center",
         marginBottom: 20,
@@ -476,15 +481,15 @@ const styles = StyleSheet.create({
     },
     sheetTitle: {
         fontSize: 20,
-        fontWeight: "800",
-        color: Colors.primary,
+        fontFamily: "PTSerif_700Bold",
+        color: Colors.text,
     },
     closeBtn: {
         padding: 8,
     },
     closeBtnText: {
-        color: Colors.accent,
-        fontWeight: "700",
+        color: Colors.primary,
+        fontFamily: "PTSerif_700Bold",
         fontSize: 15,
     },
     loadingState: {
@@ -495,7 +500,7 @@ const styles = StyleSheet.create({
         marginTop: 20,
         textAlign: "center",
         color: Colors.textLight,
-        fontWeight: "500",
+        fontFamily: "PTSerif_400Regular",
         maxWidth: 240,
         lineHeight: 22,
     },
@@ -505,10 +510,12 @@ const styles = StyleSheet.create({
         paddingHorizontal: 32,
         paddingVertical: 16,
         borderRadius: 16,
+        alignItems: "center",
+        justifyContent: "center",
     },
     analyzeBtnText: {
-        color: "#fff",
-        fontWeight: "800",
+        color: Colors.secondary,
+        fontFamily: "PTSerif_700Bold",
     },
     analysisContent: {
         paddingBottom: 40,
@@ -518,19 +525,21 @@ const styles = StyleSheet.create({
         borderRadius: 24,
         alignItems: "center",
         marginBottom: 20,
+        borderWidth: 1,
+        borderColor: "rgba(179, 143, 111, 0.2)",
     },
     valueLabel: {
-        color: "rgba(196, 232, 233, 0.7)",
+        color: "rgba(255, 255, 255, 0.6)",
         fontSize: 14,
-        fontWeight: "700",
+        fontFamily: "PTSerif_700Bold",
         marginTop: 12,
         textTransform: "uppercase",
         letterSpacing: 1,
     },
     valueAmount: {
-        color: Colors.secondary,
+        color: Colors.primary,
         fontSize: 28,
-        fontWeight: "900",
+        fontFamily: "PTSerif_700Bold",
         marginTop: 4,
     },
     grid: {
@@ -540,22 +549,22 @@ const styles = StyleSheet.create({
     },
     gridItem: {
         flex: 1,
-        backgroundColor: "#F8FAFC",
+        backgroundColor: "rgba(255, 255, 255, 0.03)",
         padding: 20,
         borderRadius: 20,
         borderWidth: 1,
-        borderColor: "#E2E8F0",
+        borderColor: "rgba(179, 143, 111, 0.1)",
     },
     gridLabel: {
         fontSize: 12,
         color: Colors.textLight,
-        fontWeight: "700",
+        fontFamily: "PTSerif_700Bold",
         marginTop: 12,
     },
     gridValue: {
         fontSize: 15,
-        color: Colors.primary,
-        fontWeight: "800",
+        color: Colors.text,
+        fontFamily: "PTSerif_700Bold",
         marginTop: 4,
     },
     section: {
@@ -563,7 +572,7 @@ const styles = StyleSheet.create({
     },
     sectionTitle: {
         fontSize: 18,
-        fontWeight: "800",
+        fontFamily: "PTSerif_700Bold",
         color: Colors.primary,
         marginBottom: 12,
     },
@@ -571,36 +580,36 @@ const styles = StyleSheet.create({
         fontSize: 15,
         color: Colors.text,
         lineHeight: 24,
-        fontWeight: "500",
+        fontFamily: "PTSerif_400Regular",
     },
     breakdownRow: {
         marginBottom: 16,
         paddingBottom: 16,
         borderBottomWidth: 1,
-        borderBottomColor: "#F1F5F9",
+        borderBottomColor: "rgba(179, 143, 111, 0.1)",
     },
     breakdownLabel: {
         fontSize: 14,
-        fontWeight: "800",
-        color: Colors.primary,
+        fontFamily: "PTSerif_700Bold",
+        color: Colors.text,
         marginBottom: 4,
     },
     breakdownDiff: {
         fontSize: 13,
-        color: Colors.success,
-        fontWeight: "700",
+        color: Colors.primary,
+        fontFamily: "PTSerif_700Bold",
         marginBottom: 4,
     },
     breakdownDetails: {
         fontSize: 13,
         color: Colors.textLight,
         lineHeight: 18,
-        fontWeight: "500",
+        fontFamily: "PTSerif_400Regular",
     },
     emptyBreakdown: {
         fontSize: 13,
         color: Colors.textLight,
         lineHeight: 18,
-        fontWeight: "500",
+        fontFamily: "PTSerif_400Regular",
     },
 });

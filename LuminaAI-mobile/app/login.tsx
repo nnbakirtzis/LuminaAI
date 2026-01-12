@@ -65,7 +65,7 @@ export default function LoginScreen() {
                     {/* Logo */}
                     <View style={styles.logoContainer}>
                         <View style={styles.logoIcon}>
-                            <Bot color={Colors.secondary} size={40} />
+                            <Bot color={Colors.primary} size={40} />
                         </View>
                         <Text style={styles.logoText}>
                             Lumina<Text style={styles.logoAccent}>.AI</Text>
@@ -189,45 +189,47 @@ const styles = StyleSheet.create({
     logoIcon: {
         width: 80,
         height: 80,
-        backgroundColor: "rgba(196, 232, 233, 0.08)",
+        backgroundColor: "rgba(179, 143, 111, 0.08)",
         borderRadius: 24,
         alignItems: "center",
         justifyContent: "center",
         marginBottom: 16,
         borderWidth: 1,
-        borderColor: "rgba(196, 232, 233, 0.15)",
+        borderColor: "rgba(179, 143, 111, 0.2)",
     },
     logoText: {
         fontSize: 36,
-        fontWeight: "900",
-        color: Colors.textOnDark,
+        fontFamily: "PTSerif_700Bold",
+        color: Colors.primary,
         letterSpacing: -1,
     },
     logoAccent: {
-        color: Colors.secondary,
+        color: Colors.light,
     },
     tagline: {
-        color: "rgba(196, 232, 233, 0.7)",
+        color: "rgba(255, 255, 255, 0.7)",
         marginTop: 8,
         textAlign: "center",
         fontSize: 16,
-        fontWeight: "500",
+        fontFamily: "PTSerif_400Regular",
         maxWidth: 280,
         lineHeight: 22,
     },
     card: {
-        backgroundColor: "rgba(255, 255, 255, 0.98)",
+        backgroundColor: Colors.secondary,
         borderRadius: 32,
         padding: 32,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 20 },
-        shadowOpacity: 0.2,
+        shadowOpacity: 0.5,
         shadowRadius: 40,
         elevation: 20,
+        borderWidth: 1,
+        borderColor: "rgba(179, 143, 111, 0.1)",
     },
     cardTitle: {
         fontSize: 24,
-        fontWeight: "800",
+        fontFamily: "PTSerif_700Bold",
         color: Colors.primary,
         marginBottom: 32,
         textAlign: "center",
@@ -238,8 +240,8 @@ const styles = StyleSheet.create({
     },
     label: {
         fontSize: 10,
-        fontWeight: "800",
-        color: Colors.accent,
+        fontFamily: "PTSerif_700Bold",
+        color: Colors.primary,
         letterSpacing: 2,
         marginBottom: 10,
         textTransform: "uppercase",
@@ -247,9 +249,9 @@ const styles = StyleSheet.create({
     inputWrapper: {
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: "#F1F5F9",
-        borderWidth: 1.5,
-        borderColor: "#E2E8F0",
+        backgroundColor: "rgba(255, 255, 255, 0.05)",
+        borderWidth: 1,
+        borderColor: "rgba(179, 143, 111, 0.3)",
         borderRadius: 16,
         paddingHorizontal: 18,
         paddingVertical: 16,
@@ -258,20 +260,21 @@ const styles = StyleSheet.create({
         flex: 1,
         marginLeft: 14,
         fontSize: 16,
-        color: Colors.primary,
-        fontWeight: "600",
+        color: Colors.light,
+        fontFamily: "PTSerif_400Regular",
         // Fix for web outline
         ...Platform.select({
             web: { outlineStyle: "none" } as any,
         }),
     },
     submitBtn: {
-        backgroundColor: Colors.secondary,
+        backgroundColor: Colors.primary,
         paddingVertical: 20,
         borderRadius: 18,
         alignItems: "center",
+        justifyContent: "center",
         marginTop: 12,
-        shadowColor: Colors.secondary,
+        shadowColor: Colors.primary,
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.4,
         shadowRadius: 16,
@@ -282,8 +285,8 @@ const styles = StyleSheet.create({
         opacity: 0.5,
     },
     submitBtnText: {
-        color: Colors.primary,
-        fontWeight: "900",
+        color: Colors.secondary,
+        fontFamily: "PTSerif_700Bold",
         fontSize: 17,
         letterSpacing: 1,
     },
@@ -293,20 +296,20 @@ const styles = StyleSheet.create({
     },
     toggleText: {
         textAlign: "center",
-        color: Colors.textLight,
+        color: "rgba(255, 255, 255, 0.6)",
         fontSize: 14,
-        fontWeight: "500",
+        fontFamily: "PTSerif_400Regular",
     },
     toggleAccent: {
         color: Colors.primary,
-        fontWeight: "800",
+        fontFamily: "PTSerif_700Bold",
     },
     footer: {
         textAlign: "center",
-        color: "rgba(196, 232, 233, 0.4)",
+        color: "rgba(179, 143, 111, 0.4)",
         fontSize: 12,
         marginTop: 40,
-        fontWeight: "600",
+        fontFamily: "PTSerif_700Bold",
         letterSpacing: 1,
         textTransform: "uppercase",
     },

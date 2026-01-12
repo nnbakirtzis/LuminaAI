@@ -40,7 +40,7 @@ const PLANS = [
 export default function PricingScreen() {
     return (
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-            <LinearGradient colors={[Colors.primary, Colors.dark]} style={styles.header}>
+            <LinearGradient colors={[Colors.secondary, "#2A2A2A"]} style={styles.header}>
                 <View style={styles.headerContent}>
                     <Text style={styles.headerTitle}>Select Your Strategy</Text>
                     <Text style={styles.headerSubtitle}>
@@ -134,7 +134,7 @@ export default function PricingScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.surface,
+        backgroundColor: Colors.secondary,
     },
     header: {
         paddingTop: 40,
@@ -150,15 +150,15 @@ const styles = StyleSheet.create({
     },
     headerTitle: {
         fontSize: 32,
-        fontWeight: "900",
-        color: Colors.textOnDark,
+        fontFamily: "PTSerif_700Bold",
+        color: Colors.text,
         letterSpacing: -1,
     },
     headerSubtitle: {
         fontSize: 16,
-        color: "rgba(196, 232, 233, 0.8)",
+        color: "rgba(255, 255, 255, 0.6)",
         marginTop: 8,
-        fontWeight: "500",
+        fontFamily: "PTSerif_400Regular",
         maxWidth: 280,
         lineHeight: 22,
     },
@@ -170,30 +170,31 @@ const styles = StyleSheet.create({
         alignSelf: "center",
     },
     planCard: {
-        backgroundColor: Colors.light,
+        backgroundColor: Colors.surface,
         borderRadius: 32,
         padding: 32,
         marginBottom: 20,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 12 },
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.3,
         shadowRadius: 20,
         elevation: 8,
         borderWidth: 1,
-        borderColor: "#F1F5F9",
+        borderColor: "rgba(179, 143, 111, 0.1)",
         position: "relative",
     },
     popularCard: {
-        backgroundColor: Colors.primary,
+        backgroundColor: Colors.surface,
         borderColor: Colors.primary,
         shadowColor: Colors.primary,
-        shadowOpacity: 0.2,
+        shadowOpacity: 0.1,
+        borderWidth: 2,
     },
     badge: {
         position: "absolute",
         top: -12,
         right: 32,
-        backgroundColor: Colors.secondary,
+        backgroundColor: Colors.primary,
         paddingHorizontal: 12,
         paddingVertical: 4,
         borderRadius: 12,
@@ -201,8 +202,8 @@ const styles = StyleSheet.create({
     },
     badgeText: {
         fontSize: 10,
-        fontWeight: "900",
-        color: Colors.primary,
+        fontFamily: "PTSerif_700Bold",
+        color: Colors.secondary,
     },
     planHeader: {
         flexDirection: "row",
@@ -216,29 +217,30 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         alignItems: "center",
         justifyContent: "center",
+        backgroundColor: "rgba(179, 143, 111, 0.1)",
     },
     planName: {
         fontSize: 18,
-        fontWeight: "800",
-        color: Colors.primary,
+        fontFamily: "PTSerif_700Bold",
+        color: Colors.text,
     },
     planPrice: {
         fontSize: 28,
-        fontWeight: "900",
+        fontFamily: "PTSerif_700Bold",
         color: Colors.primary,
         marginTop: 2,
     },
     pricePeriod: {
         fontSize: 14,
         color: Colors.textLight,
-        fontWeight: "600",
+        fontFamily: "PTSerif_400Regular",
     },
     planDesc: {
         fontSize: 14,
         color: Colors.textLight,
         lineHeight: 20,
         marginBottom: 24,
-        fontWeight: "500",
+        fontFamily: "PTSerif_400Regular",
     },
     featureList: {
         gap: 16,
@@ -252,45 +254,46 @@ const styles = StyleSheet.create({
     featureText: {
         fontSize: 14,
         color: Colors.text,
-        fontWeight: "600",
+        fontFamily: "PTSerif_400Regular",
     },
     cta: {
         paddingVertical: 18,
         borderRadius: 16,
         alignItems: "center",
+        justifyContent: "center",
     },
     standardCta: {
-        backgroundColor: "#F1F5F9",
+        backgroundColor: "rgba(179, 143, 111, 0.1)",
         borderWidth: 1,
-        borderColor: "#E2E8F0",
+        borderColor: "rgba(179, 143, 111, 0.2)",
     },
     popularCta: {
-        backgroundColor: Colors.secondary,
+        backgroundColor: Colors.primary,
     },
     ctaText: {
         fontSize: 16,
-        fontWeight: "800",
+        fontFamily: "PTSerif_700Bold",
     },
     standardCtaText: {
         color: Colors.primary,
     },
     popularCtaText: {
-        color: Colors.primary,
-    },
-    textWhite: {
-        color: Colors.textOnDark,
-    },
-    textSecondary: {
         color: Colors.secondary,
     },
+    textWhite: {
+        color: Colors.text,
+    },
+    textSecondary: {
+        color: Colors.primary,
+    },
     textMuted: {
-        color: "rgba(196, 232, 233, 0.7)",
+        color: "rgba(255, 255, 255, 0.5)",
     },
     disclaimer: {
         textAlign: "center",
         color: Colors.textLight,
         fontSize: 12,
         marginTop: 20,
-        fontWeight: "500",
+        fontFamily: "PTSerif_400Regular",
     },
 });

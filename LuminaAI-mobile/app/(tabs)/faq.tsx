@@ -51,7 +51,7 @@ export default function FAQScreen() {
 
     return (
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-            <LinearGradient colors={[Colors.primary, Colors.dark]} style={styles.header}>
+            <LinearGradient colors={[Colors.secondary, "#2A2A2A"]} style={styles.header}>
                 <View style={styles.headerContent}>
                     <Text style={styles.headerTitle}>Intelligence Support</Text>
                     <Text style={styles.headerSubtitle}>
@@ -98,7 +98,7 @@ export default function FAQScreen() {
 
                 <View style={styles.contactSection}>
                     <View style={styles.contactIcon}>
-                        <MessageCircle color={Colors.secondary} size={32} />
+                        <MessageCircle color={Colors.primary} size={32} />
                     </View>
                     <Text style={styles.contactTitle}>Still have questions?</Text>
                     <Text style={styles.contactText}>
@@ -116,7 +116,7 @@ export default function FAQScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.surface,
+        backgroundColor: Colors.secondary,
     },
     header: {
         paddingTop: 40,
@@ -132,15 +132,15 @@ const styles = StyleSheet.create({
     },
     headerTitle: {
         fontSize: 32,
-        fontWeight: "900",
-        color: Colors.textOnDark,
+        fontFamily: "PTSerif_700Bold",
+        color: Colors.text,
         letterSpacing: -1,
     },
     headerSubtitle: {
         fontSize: 16,
-        color: "rgba(196, 232, 233, 0.8)",
+        color: "rgba(255, 255, 255, 0.6)",
         marginTop: 8,
-        fontWeight: "500",
+        fontFamily: "PTSerif_400Regular",
         maxWidth: 280,
         lineHeight: 22,
     },
@@ -152,22 +152,22 @@ const styles = StyleSheet.create({
         alignSelf: "center",
     },
     faqCard: {
-        backgroundColor: Colors.light,
+        backgroundColor: Colors.surface,
         borderRadius: 24,
         padding: 24,
         marginBottom: 16,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.05,
+        shadowOpacity: 0.3,
         shadowRadius: 10,
         elevation: 2,
         borderWidth: 1,
-        borderColor: "#F1F5F9",
+        borderColor: "rgba(179, 143, 111, 0.1)",
     },
     faqCardActive: {
-        borderColor: Colors.secondary,
-        backgroundColor: "#FFF",
-        shadowOpacity: 0.1,
+        borderColor: Colors.primary,
+        backgroundColor: Colors.surface,
+        shadowOpacity: 0.4,
         shadowRadius: 20,
         elevation: 6,
     },
@@ -178,8 +178,8 @@ const styles = StyleSheet.create({
     },
     question: {
         fontSize: 16,
-        fontWeight: "700",
-        color: Colors.primary,
+        fontFamily: "PTSerif_700Bold",
+        color: Colors.text,
         flex: 1,
         lineHeight: 22,
     },
@@ -193,64 +193,69 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         marginLeft: 16,
+        backgroundColor: "rgba(179, 143, 111, 0.1)",
     },
     answerContainer: {
         marginTop: 16,
         paddingTop: 16,
         borderTopWidth: 1,
-        borderTopColor: "#F1F5F9",
+        borderTopColor: "rgba(179, 143, 111, 0.1)",
     },
     answer: {
         fontSize: 15,
         color: Colors.textLight,
         lineHeight: 24,
-        fontWeight: "500",
+        fontFamily: "PTSerif_400Regular",
     },
     contactSection: {
         marginTop: 40,
-        backgroundColor: Colors.primary,
+        backgroundColor: Colors.surface,
         borderRadius: 32,
         padding: 40,
         alignItems: "center",
-        shadowColor: Colors.primary,
+        shadowColor: "#000",
         shadowOffset: { width: 0, height: 12 },
-        shadowOpacity: 0.2,
+        shadowOpacity: 0.3,
         shadowRadius: 24,
+        borderWidth: 1,
+        borderColor: Colors.primary,
     },
     contactIcon: {
         width: 72,
         height: 72,
         borderRadius: 24,
-        backgroundColor: "rgba(196, 232, 233, 0.1)",
+        backgroundColor: "rgba(179, 143, 111, 0.1)",
         alignItems: "center",
         justifyContent: "center",
         marginBottom: 24,
         borderWidth: 1,
-        borderColor: "rgba(196, 232, 233, 0.2)",
+        borderColor: "rgba(179, 143, 111, 0.2)",
     },
     contactTitle: {
         fontSize: 22,
-        fontWeight: "800",
-        color: Colors.textOnDark,
+        fontFamily: "PTSerif_700Bold",
+        color: Colors.text,
         marginBottom: 8,
     },
     contactText: {
         fontSize: 15,
-        color: "rgba(196, 232, 233, 0.7)",
+        color: "rgba(255, 255, 255, 0.6)",
         textAlign: "center",
         marginBottom: 32,
         lineHeight: 22,
-        fontWeight: "500",
+        fontFamily: "PTSerif_400Regular",
     },
     contactBtn: {
-        backgroundColor: Colors.secondary,
+        backgroundColor: Colors.primary,
         paddingHorizontal: 32,
         paddingVertical: 18,
         borderRadius: 16,
+        alignItems: "center",
+        justifyContent: "center",
     },
     contactBtnText: {
         fontSize: 15,
-        fontWeight: "800",
-        color: Colors.primary,
+        fontFamily: "PTSerif_700Bold",
+        color: Colors.secondary,
     },
 });

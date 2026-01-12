@@ -85,7 +85,7 @@ export default function HomeScreen() {
         <View style={styles.container}>
             {loading ? (
                 <LinearGradient
-                    colors={[Colors.primary, Colors.dark]}
+                    colors={[Colors.secondary, "#2A2A2A"]}
                     style={styles.loadingWrapper}
                 >
                     <StatusVisualizer logs={logs} isPremium={currentPrefs?.enableIntelligence || false} />
@@ -99,10 +99,10 @@ export default function HomeScreen() {
                             {!hasSearched && (
                                 <View style={styles.heroSection}>
                                     <LinearGradient
-                                        colors={["rgba(196, 232, 233, 0.15)", "rgba(196, 232, 233, 0.05)"]}
+                                        colors={["rgba(179, 143, 111, 0.15)", "rgba(179, 143, 111, 0.05)"]}
                                         style={styles.heroIconWrapper}
                                     >
-                                        <Sparkles color={Colors.secondary} size={32} />
+                                        <Sparkles color={Colors.primary} size={32} />
                                     </LinearGradient>
                                     <Text style={styles.heroTitle}>
                                         Future-Proof Your <Text style={styles.heroAccent}>Career</Text>
@@ -153,7 +153,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.surface,
+        backgroundColor: Colors.secondary,
     },
     loadingWrapper: {
         flex: 1,
@@ -173,14 +173,16 @@ const styles = StyleSheet.create({
     heroSection: {
         alignItems: "center",
         marginBottom: 32,
-        backgroundColor: Colors.primary,
+        backgroundColor: "#1A1A1A",
         borderRadius: 32,
         padding: 32,
-        shadowColor: Colors.primary,
+        shadowColor: "#000",
         shadowOffset: { width: 0, height: 12 },
-        shadowOpacity: 0.2,
+        shadowOpacity: 0.4,
         shadowRadius: 24,
         elevation: 8,
+        borderWidth: 1,
+        borderColor: "rgba(179, 143, 111, 0.1)",
     },
     heroIconWrapper: {
         width: 64,
@@ -190,25 +192,25 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         marginBottom: 20,
         borderWidth: 1,
-        borderColor: "rgba(196, 232, 233, 0.3)",
+        borderColor: "rgba(179, 143, 111, 0.2)",
     },
     heroTitle: {
         fontSize: 32,
-        fontWeight: "900",
-        color: Colors.textOnDark,
+        fontFamily: "PTSerif_700Bold",
+        color: Colors.text,
         textAlign: "center",
         letterSpacing: -1,
     },
     heroAccent: {
-        color: Colors.secondary,
+        color: Colors.primary,
     },
     heroSubtitle: {
-        color: "rgba(196, 232, 233, 0.8)",
+        color: "rgba(255, 255, 255, 0.6)",
         textAlign: "center",
         marginTop: 12,
         fontSize: 16,
         lineHeight: 24,
-        fontWeight: "500",
+        fontFamily: "PTSerif_400Regular",
         maxWidth: 300,
     },
     formContainer: {
@@ -229,7 +231,7 @@ const styles = StyleSheet.create({
     },
     resultsTitle: {
         fontSize: 18,
-        fontWeight: "800",
+        fontFamily: "PTSerif_700Bold",
         color: Colors.primary,
         letterSpacing: -0.5,
     },
@@ -245,6 +247,6 @@ const styles = StyleSheet.create({
         color: Colors.textLight,
         textAlign: "center",
         fontSize: 16,
-        fontWeight: "500",
+        fontFamily: "PTSerif_400Regular",
     },
 });

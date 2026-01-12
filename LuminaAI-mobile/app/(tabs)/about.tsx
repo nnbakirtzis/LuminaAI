@@ -15,7 +15,7 @@ export default function AboutScreen() {
     return (
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
             {/* Hero Header */}
-            <LinearGradient colors={[Colors.primary, Colors.dark]} style={styles.hero}>
+            <LinearGradient colors={[Colors.secondary, "#2A2A2A"]} style={styles.hero}>
                 <View style={styles.heroContent}>
                     <Text style={styles.heroTitle}>Our Mission</Text>
                     <Text style={styles.heroSubtitle}>
@@ -67,7 +67,7 @@ export default function AboutScreen() {
 
                 {/* Story Section */}
                 <View style={styles.storyCard}>
-                    <Shield color={Colors.secondary} size={32} />
+                    <Shield color={Colors.primary} size={32} />
                     <Text style={styles.storyTitle}>Our Heritage</Text>
                     <Text style={styles.storyText}>
                         Lumina.AI was founded on the principle that job seekers deserve the
@@ -90,7 +90,7 @@ export default function AboutScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.surface,
+        backgroundColor: Colors.secondary,
     },
     hero: {
         paddingTop: 60,
@@ -106,17 +106,17 @@ const styles = StyleSheet.create({
     },
     heroTitle: {
         fontSize: 40,
-        fontWeight: "900",
-        color: Colors.textOnDark,
+        fontFamily: "PTSerif_700Bold",
+        color: Colors.text,
         letterSpacing: -1,
     },
     heroSubtitle: {
         fontSize: 18,
-        color: "rgba(196, 232, 233, 0.8)",
+        color: "rgba(255, 255, 255, 0.6)",
         marginTop: 16,
         lineHeight: 28,
         maxWidth: 320,
-        fontWeight: "600",
+        fontFamily: "PTSerif_400Regular",
     },
     content: {
         padding: 24,
@@ -131,15 +131,15 @@ const styles = StyleSheet.create({
     },
     sectionLabel: {
         fontSize: 10,
-        fontWeight: "800",
-        color: Colors.accent,
+        fontFamily: "PTSerif_700Bold",
+        color: Colors.primary,
         letterSpacing: 2,
         marginBottom: 8,
     },
     sectionTitle: {
         fontSize: 24,
-        fontWeight: "800",
-        color: Colors.primary,
+        fontFamily: "PTSerif_700Bold",
+        color: Colors.text,
         marginBottom: 24,
         letterSpacing: -0.5,
     },
@@ -149,16 +149,16 @@ const styles = StyleSheet.create({
     },
     valueCard: {
         flex: 1,
-        backgroundColor: Colors.light,
+        backgroundColor: Colors.surface,
         padding: 24,
         borderRadius: 24,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.05,
+        shadowOpacity: 0.3,
         shadowRadius: 10,
         elevation: 2,
         borderWidth: 1,
-        borderColor: "#F1F5F9",
+        borderColor: "rgba(179, 143, 111, 0.1)",
     },
     iconBox: {
         width: 52,
@@ -167,10 +167,11 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         marginBottom: 20,
+        backgroundColor: "rgba(179, 143, 111, 0.1)",
     },
     valueTitle: {
         fontSize: 16,
-        fontWeight: "800",
+        fontFamily: "PTSerif_700Bold",
         color: Colors.primary,
         marginBottom: 8,
     },
@@ -178,43 +179,45 @@ const styles = StyleSheet.create({
         fontSize: 13,
         color: Colors.textLight,
         lineHeight: 20,
-        fontWeight: "500",
+        fontFamily: "PTSerif_400Regular",
     },
     storyCard: {
-        backgroundColor: Colors.primary,
+        backgroundColor: Colors.surface,
         padding: 40,
         borderRadius: 32,
         marginBottom: 40,
-        shadowColor: Colors.primary,
+        shadowColor: "#000",
         shadowOffset: { width: 0, height: 12 },
-        shadowOpacity: 0.2,
+        shadowOpacity: 0.3,
         shadowRadius: 24,
+        borderWidth: 1,
+        borderColor: Colors.primary,
     },
     storyTitle: {
         fontSize: 24,
-        fontWeight: "800",
-        color: Colors.textOnDark,
+        fontFamily: "PTSerif_700Bold",
+        color: Colors.text,
         marginTop: 20,
         marginBottom: 16,
     },
     storyText: {
         fontSize: 15,
-        color: "rgba(196, 232, 233, 0.7)",
+        color: "rgba(255, 255, 255, 0.6)",
         lineHeight: 26,
-        fontWeight: "500",
+        fontFamily: "PTSerif_400Regular",
     },
     cta: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: Colors.secondary,
+        backgroundColor: Colors.primary,
         paddingVertical: 20,
         borderRadius: 20,
         gap: 12,
     },
     ctaText: {
         fontSize: 16,
-        fontWeight: "800",
-        color: Colors.primary,
+        fontFamily: "PTSerif_700Bold",
+        color: Colors.secondary,
     },
 });

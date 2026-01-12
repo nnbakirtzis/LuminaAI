@@ -12,11 +12,11 @@ export default function TabLayout() {
             screenOptions={{
                 headerShown: true,
                 headerStyle: styles.header,
-                headerTintColor: Colors.textOnDark,
+                headerTintColor: Colors.primary,
                 headerTitleStyle: styles.headerTitle,
                 tabBarStyle: styles.tabBar,
-                tabBarActiveTintColor: Colors.secondary,
-                tabBarInactiveTintColor: Colors.accent,
+                tabBarActiveTintColor: Colors.primary,
+                tabBarInactiveTintColor: Colors.textLight,
                 tabBarLabelStyle: styles.tabBarLabel,
                 tabBarItemStyle: styles.tabBarItem,
             }}
@@ -35,7 +35,7 @@ export default function TabLayout() {
                     headerRight: () =>
                         user ? (
                             <View style={styles.userBadge}>
-                                <User color={Colors.secondary} size={16} />
+                                <User color={Colors.primary} size={16} />
                                 <Text style={styles.userName}>{user.name.split(" ")[0]}</Text>
                             </View>
                         ) : null,
@@ -85,16 +85,17 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
     header: {
-        backgroundColor: Colors.primary,
+        backgroundColor: Colors.secondary,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.3,
         shadowRadius: 8,
         elevation: 4,
-        borderBottomWidth: 0,
+        borderBottomWidth: 1,
+        borderBottomColor: "rgba(179, 143, 111, 0.1)",
     },
     headerTitle: {
-        fontWeight: "800",
+        fontFamily: "PTSerif_700Bold",
         fontSize: 18,
     },
     logoContainer: {
@@ -102,35 +103,35 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     logoText: {
-        color: Colors.textOnDark,
+        color: Colors.text,
         fontSize: 22,
-        fontWeight: "900",
+        fontFamily: "PTSerif_700Bold",
         letterSpacing: -0.5,
     },
     logoAccent: {
-        color: Colors.secondary,
+        color: Colors.primary,
     },
     userBadge: {
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: "rgba(196, 232, 233, 0.12)",
+        backgroundColor: "rgba(179, 143, 111, 0.1)",
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 20,
         marginRight: 16,
         gap: 6,
         borderWidth: 1,
-        borderColor: "rgba(196, 232, 233, 0.2)",
+        borderColor: "rgba(179, 143, 111, 0.2)",
     },
     userName: {
-        color: Colors.secondary,
-        fontWeight: "700",
+        color: Colors.primary,
+        fontFamily: "PTSerif_700Bold",
         fontSize: 13,
     },
     tabBar: {
-        backgroundColor: Colors.primary,
+        backgroundColor: Colors.secondary,
         borderTopWidth: 1,
-        borderTopColor: "rgba(255,255,255,0.05)",
+        borderTopColor: "rgba(179, 143, 111, 0.1)",
         paddingTop: 8,
         paddingBottom: Platform.OS === 'ios' ? 28 : 12,
         height: Platform.OS === 'ios' ? 88 : 68,
@@ -139,7 +140,7 @@ const styles = StyleSheet.create({
     },
     tabBarLabel: {
         fontSize: 10,
-        fontWeight: "700",
+        fontFamily: "PTSerif_700Bold",
         marginTop: 4,
         textTransform: "uppercase",
         letterSpacing: 0.5,
@@ -155,6 +156,6 @@ const styles = StyleSheet.create({
         borderRadius: 12,
     },
     iconWrapperActive: {
-        backgroundColor: "rgba(196, 232, 233, 0.15)",
+        backgroundColor: "rgba(179, 143, 111, 0.15)",
     },
 });

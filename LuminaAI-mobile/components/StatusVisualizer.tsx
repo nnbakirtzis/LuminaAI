@@ -10,7 +10,7 @@ interface StatusVisualizerProps {
 }
 
 const AGENTS = [
-    { id: "headhunter", name: "Headhunter", icon: Search, color: Colors.secondary },
+    { id: "headhunter", name: "Headhunter", icon: Search, color: "#b38f6f" },
     { id: "economist", name: "Economist", icon: Brain, color: "#60a5fa" },
     { id: "futurist", name: "Futurist", icon: Brain, color: "#a855f7" },
     { id: "strategist", name: "Strategist", icon: Brain, color: "#f59e0b" },
@@ -27,7 +27,7 @@ export default function StatusVisualizer({
             {/* Main Status */}
             <View style={styles.header}>
                 <View style={styles.botIconWrapper}>
-                    <Bot color={Colors.secondary} size={40} />
+                    <Bot color={Colors.primary} size={40} />
                 </View>
                 <Text style={styles.title}>Agents Deploying</Text>
                 <Text style={styles.subtitle}>Analyzing the global job market with strategic precision...</Text>
@@ -51,7 +51,7 @@ export default function StatusVisualizer({
                             <View
                                 style={[styles.agentIcon, isActive && styles.agentIconActive]}
                             >
-                                <Icon color={isActive ? Colors.primary : Colors.accent} size={20} />
+                                <Icon color={isActive ? Colors.secondary : Colors.primary} size={20} />
                             </View>
                             <Text
                                 style={[styles.agentName, isActive && styles.agentNameActive]}
@@ -69,7 +69,7 @@ export default function StatusVisualizer({
                 <ScrollView showsVerticalScrollIndicator={false} style={styles.logsScroll}>
                     {logs.slice(-5).map((log) => (
                         <View key={log.id} style={styles.logRow}>
-                            <CheckCircle color={Colors.secondary} size={12} style={{ marginTop: 2 }} />
+                            <CheckCircle color={Colors.primary} size={12} style={{ marginTop: 2 }} />
                             <View style={styles.logContent}>
                                 <Text style={styles.logAgent}>{log.agentName}</Text>
                                 <Text style={styles.logAction}>{log.action}</Text>
@@ -97,31 +97,31 @@ const styles = StyleSheet.create({
     botIconWrapper: {
         width: 90,
         height: 90,
-        backgroundColor: "rgba(196, 232, 233, 0.08)",
+        backgroundColor: "rgba(179, 143, 111, 0.1)",
         borderRadius: 45,
         alignItems: "center",
         justifyContent: "center",
         marginBottom: 20,
-        borderWidth: 2,
-        borderColor: Colors.secondary,
-        shadowColor: Colors.secondary,
+        borderWidth: 1,
+        borderColor: Colors.primary,
+        shadowColor: Colors.primary,
         shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.3,
+        shadowOpacity: 0.2,
         shadowRadius: 15,
     },
     title: {
         fontSize: 28,
-        fontWeight: "900",
-        color: Colors.textOnDark,
+        fontFamily: "PTSerif_700Bold",
+        color: Colors.text,
         marginBottom: 8,
         letterSpacing: -0.5,
     },
     subtitle: {
-        color: "rgba(196, 232, 233, 0.7)",
+        color: "rgba(255, 255, 255, 0.6)",
         textAlign: "center",
         lineHeight: 22,
         fontSize: 15,
-        fontWeight: "500",
+        fontFamily: "PTSerif_400Regular",
     },
     grid: {
         flexDirection: "row",
@@ -137,11 +137,11 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         backgroundColor: "rgba(255, 255, 255, 0.03)",
         borderWidth: 1,
-        borderColor: "rgba(255, 255, 255, 0.05)",
+        borderColor: "rgba(179, 143, 111, 0.1)",
     },
     agentCardActive: {
-        backgroundColor: "rgba(196, 232, 233, 0.1)",
-        borderColor: "rgba(196, 232, 233, 0.2)",
+        backgroundColor: "rgba(179, 143, 111, 0.1)",
+        borderColor: "rgba(179, 143, 111, 0.3)",
     },
     agentIcon: {
         width: 44,
@@ -153,33 +153,33 @@ const styles = StyleSheet.create({
         backgroundColor: "rgba(255, 255, 255, 0.05)",
     },
     agentIconActive: {
-        backgroundColor: Colors.secondary,
+        backgroundColor: Colors.primary,
     },
     agentName: {
         fontSize: 11,
-        fontWeight: "700",
+        fontFamily: "PTSerif_700Bold",
         textAlign: "center",
-        color: Colors.accent,
+        color: Colors.textLight,
         textTransform: "uppercase",
         letterSpacing: 0.5,
     },
     agentNameActive: {
-        color: Colors.secondary,
+        color: Colors.primary,
     },
     logsCard: {
         width: "100%",
-        backgroundColor: "rgba(0,0,0,0.2)",
+        backgroundColor: "rgba(0,0,0,0.3)",
         borderRadius: 24,
         padding: 24,
         maxHeight: 220,
         borderWidth: 1,
-        borderColor: "rgba(255, 255, 255, 0.05)",
+        borderColor: "rgba(179, 143, 111, 0.15)",
     },
     logsTitle: {
         fontSize: 10,
-        color: Colors.accent,
+        color: Colors.primary,
         textTransform: "uppercase",
-        fontWeight: "800",
+        fontFamily: "PTSerif_700Bold",
         marginBottom: 16,
         letterSpacing: 1.5,
     },
@@ -197,15 +197,15 @@ const styles = StyleSheet.create({
     },
     logAgent: {
         fontSize: 11,
-        color: Colors.secondary,
-        fontWeight: "800",
+        color: Colors.primary,
+        fontFamily: "PTSerif_700Bold",
         textTransform: "uppercase",
         marginBottom: 2,
     },
     logAction: {
         fontSize: 13,
-        color: Colors.textOnDark,
+        color: Colors.text,
         lineHeight: 18,
-        fontWeight: "500",
+        fontFamily: "PTSerif_400Regular",
     },
 });

@@ -1,22 +1,22 @@
 const Colors = {
-    primary: "#363A64", // Deep Indigo
-    secondary: "#C4E8E9", // Soft Aqua
-    accent: "#7A81B4", // Dusty Indigo
-    surface: "#F8FAFC", // Off-white/slate-50
-    text: "#1E293B", // Slate-800
-    textLight: "#64748B", // Slate-500
-    textOnDark: "#F8FAFC",
-    success: "#3D7A75", // Muted Teal
-    warning: "#D97706",
-    error: "#DC2626",
-    dark: "#21243D", // Darker Indigo for gradients
+    primary: "#b38f6f", // Sand (Accent/Brand)
+    secondary: "#161616", // Obsidian (Dark Background)
+    accent: "#b38f6f", // Sand
+    surface: "#1A1A1A", // Slightly lighter Obsidian for cards
+    text: "#FDFBF7", // Cream/Off-white for text
+    textLight: "#A0A0A0", // Gray for secondary text
+    textOnDark: "#FDFBF7",
+    success: "#2D4B3F", // Muted Forest Green
+    warning: "#B38F6F", // Sand
+    error: "#7A1C1C", // Deep Crimson
+    dark: "#161616", // Obsidian
     light: "#FFFFFF",
 };
 
 export const Palette = {
-    background: [Colors.primary, Colors.dark],
-    card: Colors.light,
-    border: "#E2E8F0",
+    background: ["#161616", "#2A2A2A"], // Luxury dark gradient
+    card: "#1A1A1A",
+    border: "#b38f6f33", // Sand with 20% opacity
 };
 
 export default Colors;
