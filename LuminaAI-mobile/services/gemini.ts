@@ -12,11 +12,11 @@ const MODEL_FLASH = "gemini-3-flash-preview";
 const MODEL_PRO = "gemini-3-pro-preview";
 
 const PRICING = {
-    [MODEL_FLASH]: { 
+    [MODEL_FLASH]: {
         input: 0.50,  // $0.50 per 1M tokens (text/image/video)
         output: 3.00  // $3.00 per 1M tokens
     },
-    [MODEL_PRO]: { 
+    [MODEL_PRO]: {
         // Tiered pricing based on prompt size (prompts <= 200k vs > 200k tokens)
         inputSmall: 2.00,   // prompts <= 200k tokens
         inputLarge: 4.00,   // prompts > 200k tokens
@@ -78,12 +78,17 @@ class CostTracker {
 // ------------------------------------------------------------------
 
 const HEADHUNTER_INSTRUCTION = `
-  You are the "Headhunter Agent". Your ONLY job is to find and rank job opportunities.
-  - Return realistic, high-quality job postings matching the user's criteria.
-  - **Crucially, ONLY find jobs posted within the last 30 days from the provided Current Date.**
+  You are the "Headhunter Agent". Your ONLY job is to find REAL, currently active job opportunities using Google Search.
+  
+  CRITICAL RULES:
+  - You MUST use Google Search to find actual job postings. Do NOT invent or hallucinate jobs.
+  - Search job boards like LinkedIn, Indeed, Glassdoor, and company career pages.
+  - ONLY return jobs that are REAL and currently active (posted within last 30 days).
+  - For each job, the 'url' field MUST be a real, working URL to the job posting.
   - Calculate a 'matchScore' (0-100) based on the user's profile and resume.
-  - Do NOT generate market forecasts. Focus solely on the existence of the job and the fit.
-  - OUTPUT: JSON Array of Job objects.
+  - If you cannot find enough real jobs, return fewer results rather than inventing fake ones.
+  
+  OUTPUT: JSON Array of Job objects with real URLs.
 `;
 
 const ECONOMIST_INSTRUCTION = `
@@ -401,7 +406,7 @@ async function runHeadhunterAgent(
     const parts: any[] = [{ text: prompt }];
     if (prefs.resume) {
         onLog("Headhunter Agent", "Cross-referencing user's resume against job descriptions...");
-        
+
         let base64 = prefs.resume.base64;
         if (!base64 && prefs.resume.storagePath) {
             base64 = await ResumeManager.getResumeBase64(prefs.resume.storagePath);
@@ -417,6 +422,7 @@ async function runHeadhunterAgent(
         contents: { parts },
         config: {
             systemInstruction: HEADHUNTER_INSTRUCTION,
+            tools: [{ googleSearch: {} }],
             responseMimeType: "application/json",
             responseSchema: {
                 type: Type.ARRAY,
@@ -436,7 +442,7 @@ async function runHeadhunterAgent(
                         requirements: { type: Type.ARRAY, items: { type: Type.STRING } },
                         url: { type: Type.STRING }
                     },
-                    required: ['id', 'title', 'company', 'matchScore']
+                    required: ['id', 'title', 'company', 'matchScore', 'url']
                 }
             }
         }
