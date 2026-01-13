@@ -32,6 +32,7 @@ import { useAuth } from "../context/AuthContext";
 import ScalePressable from "./ScalePressable";
 import { supabase } from "../services/supabase";
 import { ResumeManager } from "../utils/resumeManager";
+import { sanitizeInput, containsInjectionAttempt } from "../utils/security";
 
 interface PreferenceFormProps {
     onSubmit: (prefs: UserPreferences) => void;
@@ -84,12 +85,12 @@ export default function PreferenceForm({
                     salaryMax: data.salary_max || prev.salaryMax,
                     workMode: (data.work_mode as any) || prev.workMode,
                     employmentType: (data.employment_type as any) || prev.employmentType,
-                    key_skills: data.key_skills || prev.keySkills,
+                    keySkills: data.key_skills || prev.keySkills,
                     enableIntelligence: data.enable_intelligence ?? prev.enableIntelligence,
                     enableResumeTailoring: data.enable_resume_tailoring ?? prev.enableResumeTailoring,
                     resume: data.resume_path ? {
                         fileName: data.resume_path.split('/').pop() || "Resume",
-                        mimeType: "application/pdf", // Default, could be refined
+                        mimeType: "application/pdf",
                         storagePath: data.resume_path
                     } : prev.resume,
                 }));
@@ -128,12 +129,29 @@ export default function PreferenceForm({
     };
 
     const handleSubmit = async () => {
-        if (!prefs.jobTitle || !prefs.location) {
+        const { jobTitle, location, keySkills } = prefs;
+
+        if (!jobTitle || !location) {
             Alert.alert("Missing Info", "Please enter a job title and location.");
             return;
         }
-        await saveProfile(prefs);
-        onSubmit(prefs);
+
+        // Security check for prompt injection attempts
+        if (containsInjectionAttempt(jobTitle) || containsInjectionAttempt(location) || containsInjectionAttempt(keySkills)) {
+            Alert.alert("Security Issue", "Please avoid using restricted terms in your inputs.");
+            return;
+        }
+
+        // Final sanitization before submission
+        const sanitizedPrefs = {
+            ...prefs,
+            jobTitle: sanitizeInput(jobTitle),
+            location: sanitizeInput(location),
+            keySkills: sanitizeInput(keySkills),
+        };
+
+        await saveProfile(sanitizedPrefs);
+        onSubmit(sanitizedPrefs);
     };
 
     const handleLocateMe = async () => {

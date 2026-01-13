@@ -3,6 +3,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { Job, UserPreferences, MarketIntelligence, RealValueAnalysis } from "../types";
 import { log, error as logError } from "../utils/logger";
 import { ResumeManager } from "../utils/resumeManager";
+import { wrapUserText } from "../utils/security";
 
 // Initialize the Gemini client
 // Note: In production, use expo-constants to get API_KEY from app.config.js
@@ -395,8 +396,8 @@ async function runHeadhunterAgent(
     const prompt = `
     Current Date: ${new Date().toLocaleDateString()}
     Find 6-8 active job postings matching:
-    - Role: ${prefs.jobTitle}
-    - Location: ${prefs.location}
+    - Role: ${wrapUserText(prefs.jobTitle)}
+    - Location: ${wrapUserText(prefs.location)}
     - Pay: $${prefs.salaryMin}k - $${prefs.salaryMax}k
     - Type: ${prefs.employmentType} (${prefs.workMode})
     - **Posted: Within the last 30 days.**
