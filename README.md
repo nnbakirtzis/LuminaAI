@@ -16,17 +16,6 @@ Lumina is an AI-powered job finder that goes beyond keyword matching. Instead of
 - **Real Value** — Compare what a salary offer really means between locations, accounting for cost of living and purchasing power.
 - **Live progress** — Watch the search unfold in real time as specialized AI agents work through each step.
 
-## Apps in this repo
-
-This repository contains two related apps that share the same product vision:
-
-| App | Folder | Description |
-|-----|--------|-------------|
-| **Lumina Careers** (web) | `/` | React web app — great for desktop job hunting |
-| **Lumina.AI** (mobile) | `LuminaAI-mobile/` | Expo app for iOS, Android, and mobile web — includes account sign-in and saved data via Supabase |
-
-Both apps offer the same core search experience. The mobile app adds native features (location, secure storage) and real authentication.
-
 ## Run locally
 
 ### Prerequisites
@@ -34,7 +23,7 @@ Both apps offer the same core search experience. The mobile app adds native feat
 - [Node.js](https://nodejs.org/) (v18 or later recommended)
 - A [Google Gemini API key](https://aistudio.google.com/apikey)
 
-### Web app
+### Setup
 
 ```bash
 npm install
@@ -52,40 +41,17 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-### Mobile app
-
-```bash
-cd LuminaAI-mobile
-npm install
-```
-
-Create a `.env` file in `LuminaAI-mobile/`:
-
-```
-EXPO_PUBLIC_GEMINI_API_KEY=your_key_here
-EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
-EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
-
-```bash
-npm start
-```
-
-Then press `i` for iOS simulator, `a` for Android emulator, or scan the QR code with Expo Go on your phone.
-
-> **Note:** The mobile app needs a Supabase project for sign-up and sign-in. The web app uses a local demo auth flow for development.
+> **Note:** Sign-in uses a local demo auth flow for development.
 
 ## Project structure
 
 ```
 LuminaAI/
-├── components/          # Web UI components
-├── pages/               # Web routes (Home, About, Pricing, FAQ)
-├── services/            # Web AI and auth logic
-├── LuminaAI-mobile/     # Expo / React Native app
-│   ├── app/             # Mobile screens and navigation
-│   ├── components/      # Mobile UI components
-│   └── services/        # Mobile AI, auth, and Supabase
+├── components/          # UI components
+├── context/             # React context (auth)
+├── pages/               # Routes (Home, About, Pricing, FAQ, Login)
+├── services/            # AI agents and auth logic
+├── utils/               # Input sanitization for agent prompts
 └── README.md
 ```
 
