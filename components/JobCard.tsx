@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { Job } from '../types';
+import SearchSuggestions from './SearchSuggestions';
 import { Briefcase, MapPin, DollarSign, ExternalLink, Calendar, TrendingUp, BarChart3, LineChart, Sparkles, Scale, AlertTriangle, ArrowRight, ArrowUpRight, ArrowDownRight, Link as LinkIcon } from 'lucide-react';
 
 interface JobCardProps {
@@ -211,6 +212,9 @@ const JobCard: React.FC<JobCardProps> = ({ job, enableResumeTailoring, onGenerat
                      <LinkIcon size={8} /> {source.title.substring(0, 15)}...
                    </a>
                 ))}
+              </div>
+              <div className="mt-2">
+                <SearchSuggestions html={job.realValueAnalysis.searchSuggestionsHtml} />
               </div>
            </div>
         </div>

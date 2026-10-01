@@ -1,18 +1,21 @@
 
 import React, { useState } from 'react';
-import { UserPreferences, Job, AgentStatus, AgentLog } from '../types';
+import { UserPreferences, Job, AgentStatus, AgentLog, Source } from '../types';
 import { findAndRankJobs, generateTailoredResume, calculateRealValue } from '../services/gemini';
 import PreferenceForm from '../components/PreferenceForm';
 import JobCard from '../components/JobCard';
 import StatusVisualizer from '../components/StatusVisualizer';
 import DebugSidebar from '../components/DebugSidebar';
 import ResumeModal from '../components/ResumeModal';
-import { Sparkles, Terminal } from 'lucide-react';
+import SearchSuggestions from '../components/SearchSuggestions';
+import { Sparkles, Terminal, Link as LinkIcon } from 'lucide-react';
 
 const Home: React.FC = () => {
   const [status, setStatus] = useState<AgentStatus>(AgentStatus.IDLE);
   const [logs, setLogs] = useState<AgentLog[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [sources, setSources] = useState<Source[]>([]);
+  const [searchSuggestionsHtml, setSearchSuggestionsHtml] = useState<string[]>([]);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const [currentPrefs, setCurrentPrefs] = useState<UserPreferences | null>(null);
 
@@ -38,6 +41,8 @@ const Home: React.FC = () => {
     setStatus(AgentStatus.PLANNING);
     setLogs([]); // Clear previous logs
     setJobs([]);
+    setSources([]);
+    setSearchSuggestionsHtml([]);
     setCurrentPrefs(prefs);
 
     try {
@@ -47,11 +52,13 @@ const Home: React.FC = () => {
       await new Promise(r => setTimeout(r, 800));
       setStatus(AgentStatus.SCRAPING);
       
-      const results = await findAndRankJobs(prefs, addLog);
-      
-      setJobs(results);
+      const result = await findAndRankJobs(prefs, addLog);
+
+      setJobs(result.jobs);
+      setSources(result.sources);
+      setSearchSuggestionsHtml(result.searchSuggestionsHtml);
       setStatus(AgentStatus.COMPLETED);
-      addLog("Coordinator", `Successfully retrieved ${results.length} high-match opportunities.`);
+      addLog("Coordinator", `Successfully retrieved ${result.jobs.length} high-match opportunities.`);
       
     } catch (error) {
       console.error(error);
@@ -196,7 +203,38 @@ const Home: React.FC = () => {
                   />
                 ))}
               </div>
-              
+
+              {jobs.length === 0 && (
+                <p className="text-center text-slate-500 text-sm py-12">
+                  No verified postings matched these criteria. Try a broader title or location.
+                </p>
+              )}
+
+              {/* Grounding: sources the agents searched + Google Search suggestions (required display) */}
+              {(sources.length > 0 || searchSuggestionsHtml.length > 0) && (
+                <div className="border-t border-gray-200 pt-6 space-y-4">
+                  {sources.length > 0 && (
+                    <div>
+                      <p className="text-[10px] text-slate-400 font-mono uppercase tracking-widest mb-2">Sources (Verified via Search)</p>
+                      <div className="flex flex-wrap gap-2">
+                        {sources.map((source) => (
+                          <a
+                            key={source.uri}
+                            href={source.uri}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center gap-1 text-[10px] text-teal-600 hover:underline bg-white px-2 py-1 rounded border border-slate-100"
+                          >
+                            <LinkIcon size={10} /> {source.title}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <SearchSuggestions html={searchSuggestionsHtml} />
+                </div>
+              )}
+
               {/* Disclaimer */}
               <div className="mt-12 text-center pb-8">
                 <p className="text-slate-500 text-xs flex items-center justify-center gap-2">

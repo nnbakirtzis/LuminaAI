@@ -32,6 +32,11 @@ export interface MarketIntelligence {
   careerTrajectory: string;
 }
 
+export interface Source {
+  title: string;
+  uri: string;
+}
+
 export interface RealValueAnalysis {
   originalSalary: string;
   adjustedValue: string; // The "Real" value string (e.g. "$145,000")
@@ -42,7 +47,8 @@ export interface RealValueAnalysis {
     diff: string; // e.g. "+15% cheaper"
     details: string; // e.g. "Rent in Austin is 15% lower than SF"
   }[];
-  sources: { title: string; uri: string }[];
+  sources: Source[];
+  searchSuggestionsHtml: string[]; // Google Search suggestion chips; must be displayed when grounding is used
 }
 
 export interface Job {
@@ -60,6 +66,13 @@ export interface Job {
   url: string;
   marketIntelligence?: MarketIntelligence; // Optional based on mode
   realValueAnalysis?: RealValueAnalysis; // Optional, loaded on demand
+}
+
+// Grounding metadata is per agent call, not per job, so sources are reported for the whole run.
+export interface SearchResult {
+  jobs: Job[];
+  sources: Source[];
+  searchSuggestionsHtml: string[]; // Google Search suggestion chips; must be displayed when grounding is used
 }
 
 export enum AgentStatus {
